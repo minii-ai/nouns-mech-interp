@@ -1,3 +1,5 @@
+import json
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -84,6 +86,15 @@ class VAE(nn.Module):
         )
         self.decoder = Decoder(list(reversed(num_hiddens)), in_channels)
 
+    @staticmethod
+    def load_from_checkpoint(config_path: str, weights_path: str):
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        vae = VAE(**config)
+        vae.load_state_dict(torch.load(weights_path))
+        return vae
+
     @property
     def config(self):
         return {
@@ -129,13 +140,7 @@ class VAE(nn.Module):
                 dim=(1, 2, 3),
             )
         )
-        # recon_loss = F.mse_loss(data["recon"], x, reduction="sum")
-        # kl_loss = -0.5 * torch.sum(
-        #     1 + data["logvar"] - data["mu"] ** 2 - data["logvar"].exp(),
-        #     dim=(1, 2, 3),
-        # )
 
-        # loss = torch.mean(recon_loss + beta * kl_loss)
         loss = recon_loss + beta * kl_loss
 
         return {

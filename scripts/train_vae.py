@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torchvision
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
@@ -173,10 +173,18 @@ def main(args):
 
             x = batch.to(device)
             # beta = iteration / (args.iterations - 1)
-            beta = sigmoid_schedule(
-                iteration, args.iterations - 1, max_beta=args.max_beta
-            )
+            # beta = sigmoid_schedule(
+            #     iteration, args.iterations - 1, max_beta=args.max_beta
+            # )
             # beta = args.max_beta
+            # loss_dict = vae.loss(x, beta)
+            if iteration < 1000:
+                beta = 0
+            else:
+                # beta = sigmoid_schedule(
+                #     iteration - 1000, args.iterations - 1 - 1000, max_beta=args.max_beta
+                # )
+                beta = args.max_beta / (args.iterations - 1000) * (iteration - 1000)
             loss_dict = vae.loss(x, beta)
             loss = loss_dict["loss"]
 
