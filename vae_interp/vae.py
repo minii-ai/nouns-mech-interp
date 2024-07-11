@@ -1,4 +1,5 @@
 import json
+import os
 
 import torch
 import torch.nn as nn
@@ -85,6 +86,13 @@ class VAE(nn.Module):
             latent_dim, num_hiddens[-1], kernel_size=1, stride=1, padding=0
         )
         self.decoder = Decoder(list(reversed(num_hiddens)), in_channels)
+
+    @staticmethod
+    def load_from_dir(path: str):
+        config_path = os.path.join(path, "config.json")
+        weights_path = os.path.join(path, "vae.pth")
+
+        return VAE.load_from_checkpoint(config_path, weights_path)
 
     @staticmethod
     def load_from_checkpoint(config_path: str, weights_path: str):

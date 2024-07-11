@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
@@ -5,7 +6,6 @@ from torchvision.transforms import v2
 
 
 def load_nouns_dataset(image_size: int, normalize: bool = True):
-
     # Define the transform pipeline
     transform = [
         v2.Resize((image_size, image_size)),
@@ -37,3 +37,18 @@ class NounsDataset(Dataset):
             image = self.transform(image)
 
         return image
+
+
+class NpyDataset(Dataset):
+    def __init__(self, npy_path: str):
+        super().__init__()
+
+        data = np.load(npy_path)
+        data = torch.from_numpy(data).to(torch.float32)
+        self.data = data
+
+    def __len__(self):
+        return self.data.shape[0]
+
+    def __getitem__(self, idx):
+        return self.data[idx]
