@@ -6,7 +6,6 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torchvision
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
@@ -153,7 +152,6 @@ def main(args):
 
     # load dataset
     dataset = load_nouns_dataset(args.image_size, normalize=True)
-    # dataset = Subset(dataset, range(25))
     dataloader = DataLoader(
         dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True
     )
