@@ -3,17 +3,12 @@ import asyncio
 import itertools
 import os
 import sys
+import time
 from dataclasses import dataclass
 
 import torch
-from torch.utils.data import DataLoader
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
-
-
-from vae_interp.dataset import NpyDataset
-from vae_interp.sae import SAE
-from vae_interp.trainer import SAETrainConfig, SAETrainer
 
 
 def parse_args():
@@ -91,20 +86,60 @@ def parse_args():
 
 @dataclass
 class ExperimentConfig:
+    in_features: int
+    expansion_factor: int
     lr: float
     l1_weight: float
+    batch_size: int
     iterations: int
-    dataloader: DataLoader
+    save_dir: str
+    vae_embeddings_path: str
 
 
 async def experiment_worker(queue: asyncio.Queue):
-    await asyncio.sleep(1)
+    while True:
+        config = await queue.get()
+        print(f"[INFO] Running Experiment | lr={config.lr}, l1={config.l1_weight}")
+        await run_experiment(config)
+        queue.task_done()
+        print(f"[INFO] Experiment Done | lr={config.lr}, l1={config.l1_weight}")
 
-    print("Done!")
+
+def create_command(script: str, args: dict) -> str:
+    command_parts = [f"python {script}"]
+    for key, value in args.items():
+        if isinstance(value, bool):
+            if value:
+                command_parts.append(f"--{key}")
+        else:
+            command_parts.append(f"--{key}={value}")
+    return " ".join(command_parts)
 
 
-async def run_experiment():
-    pass
+async def run_experiment(config: ExperimentConfig):
+    command = create_command(
+        "train_sae.py",
+        {
+            "in_features": config.in_features,
+            "expansion_factor": config.expansion_factor,
+            "lr": config.lr,
+            "iterations": config.iterations,
+            "batch_size": config.batch_size,
+            "lambda_l1": config.l1_weight,
+            "save_dir": config.save_dir,
+            "vae_embeddings_path": config.vae_embeddings_path,
+        },
+    )
+
+    process = await asyncio.create_subprocess_shell(command, stdout=None, stderr=None)
+
+    await process.wait()
+
+    print(f"Exit code: {process.returncode}")
+
+
+def scientific_notation(num):
+    return "{:.1e}".format(num)
 
 
 async def main(args):
@@ -112,33 +147,45 @@ async def main(args):
     l1_weights = [float(l1_weight) for l1_weight in args.lambda_l1.split(",")]
     configs = list(itertools.product(lrs, l1_weights))
 
-    # load dataset
-    dataset = NpyDataset(args.vae_embeddings_path)
-    dataloader = DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=4,
-        pin_memory=True,
-    )
+    os.makedirs(args.save_dir, exist_ok=True)
 
     # put jobs in the queue
     queue = asyncio.Queue()
     for config in configs:
+        lr_label = scientific_notation(config[0])
+        l1_label = scientific_notation(config[1])
+
+        experiment_dir = os.path.join(args.save_dir, f"lr={lr_label}_l1={l1_label}")
         experiment_config = ExperimentConfig(
+            in_features=args.in_features,
+            expansion_factor=args.expansion_factor,
             lr=config[0],
             l1_weight=config[1],
+            batch_size=args.batch_size,
             iterations=args.iterations,
-            dataloader=dataloader,
+            save_dir=experiment_dir,
+            vae_embeddings_path=args.vae_embeddings_path,
         )
         await queue.put(experiment_config)
 
+    # create workers
     workers = []
     for i in range(args.concurrent_experiments):
         worker = asyncio.create_task(experiment_worker(queue))
         workers.append(worker)
 
+    started_at = time.monotonic()
     await queue.join()
+    total_time = time.monotonic() - started_at
+
+    # cancel workers after queue is empty
+    for worker in workers:
+        worker.cancel()
+
+    await asyncio.gather(*workers, return_exceptions=True)
+
+    print("[INFO] All Experiments Ran!")
+    print(f"[INFO] Total Time: {total_time:.2f} seconds")
 
 
 if __name__ == "__main__":
