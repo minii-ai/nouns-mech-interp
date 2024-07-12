@@ -124,6 +124,12 @@ class SAETrainer:
             if iteration >= self.config.iterations:
                 break
 
+        checkpoint_path = os.path.join(self.save_dir, f"sae.pth")
+        torch.save(
+            model.state_dict(),
+            checkpoint_path,
+        )
+
         self.writer.close()
 
     def checkpoint(self, iteration: int):
@@ -178,7 +184,7 @@ class SAETrainer:
         log_feature_density = torch.log10(feature_density + eps)
 
         fig, ax = plt.subplots()
-        n, bins, patches = ax.hist(log_feature_density, num_bins, density=True)
+        n, bins, patches = ax.hist(log_feature_density, num_bins)
         ax.set_title("Feature Density")
         ax.set_xlabel("log10(Feature Density)")
         ax.set_ylabel("Count")
