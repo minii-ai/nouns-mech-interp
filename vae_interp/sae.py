@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 import torch
@@ -45,6 +46,15 @@ class SAE(nn.Module):
         nn.init.kaiming_uniform_(self.W_e, mode="fan_in", nonlinearity="relu")
         nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
         self.set_features_to_unit_norm()
+
+    @staticmethod
+    def load_from_checkpoint(config_path: str, weights_path: str):
+        with open(config_path, "r") as f:
+            config = json.load(f)
+
+        sae = SAE(**config)
+        sae.load_state_dict(torch.load(weights_path))
+        return sae
 
     @property
     def config(self):
