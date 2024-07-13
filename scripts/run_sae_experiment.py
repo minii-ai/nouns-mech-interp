@@ -93,6 +93,7 @@ class ExperimentConfig:
     batch_size: int
     iterations: int
     save_dir: str
+    checkpoint_every: int
     vae_embeddings_path: str
 
 
@@ -128,6 +129,7 @@ async def run_experiment(config: ExperimentConfig):
             "lambda_l1": config.l1_weight,
             "save_dir": config.save_dir,
             "vae_embeddings_path": config.vae_embeddings_path,
+            "checkpoint_every": config.checkpoint_every,
         },
     )
 
@@ -165,6 +167,7 @@ async def main(args):
             iterations=args.iterations,
             save_dir=experiment_dir,
             vae_embeddings_path=args.vae_embeddings_path,
+            checkpoint_every=args.checkpoint_every,
         )
         await queue.put(experiment_config)
 

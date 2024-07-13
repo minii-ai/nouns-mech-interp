@@ -88,6 +88,7 @@ class SAETrainer:
                 optimizer.zero_grad()
                 loss_output.loss.backward()
                 optimizer.step()
+                model.set_features_to_unit_norm()  # features must be unit norm
 
                 # log losses to tensorboard
                 self.writer.add_scalar("loss", loss_output.loss.item(), iteration)
