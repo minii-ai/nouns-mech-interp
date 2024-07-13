@@ -1,10 +1,135 @@
+import os
 from dataclasses import dataclass
 
+import matplotlib.pyplot as plt
 import torch
+from tensorboard.backend.event_processing import event_accumulator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from .sae import SAE
+
+
+class SAEExperimentsResults:
+    def __init__(self, experiments_dir: str):
+        self.experiments_dir = experiments_dir
+        self.experiments = {}
+
+        for experiment_name in tqdm(os.listdir(experiments_dir)):
+            experiment_dir = os.path.join(experiments_dir, experiment_name)
+            if os.path.isdir(experiment_dir):
+                log_dir = os.path.join(experiment_dir, "logs")
+                ea = event_accumulator.EventAccumulator(
+                    log_dir,
+                    size_guidance={
+                        event_accumulator.SCALARS: 10000,
+                        event_accumulator.IMAGES: 0,
+                    },
+                )
+                ea.Reload()
+                self.experiments[experiment_name] = {
+                    "experiment_dir": experiment_dir,
+                    "log_dir": log_dir,
+                    "events": ea,
+                }
+
+        self.loss_tag = "loss"
+        self.recon_loss_tag = "recon_loss"
+        self.l1_loss_tag = "l1_loss"
+
+    def plot_losses(self):
+        fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+
+        loss_tags = [
+            self.loss_tag,
+            self.recon_loss_tag,
+            self.l1_loss_tag,
+        ]
+
+        for ax, tag in zip(axs, loss_tags):
+            for experiment_name, data in self.experiments.items():
+                loss = [e.value for e in data["events"].Scalars(tag)]
+                steps = [e.step for e in data["events"].Scalars(tag)]
+                ax.semilogy(steps, loss, label=experiment_name)
+
+            ax.set_title(tag)
+            ax.set_xlabel("Iteration")
+            ax.set_ylabel("Log Loss")
+            ax.legend()
+
+    def plot_l0_norms(self):
+        fig, ax = plt.subplots(1, 1, figsize=(15, 5))
+
+        for experiment_name, data in self.experiments.items():
+            l0_norms = [e.value for e in data["events"].Scalars("l0_norm")]
+            steps = [e.step for e in data["events"].Scalars("l0_norm")]
+            ax.plot(steps, l0_norms, label=experiment_name)
+
+        ax.set_title("l0_norm")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("l0_norm")
+        ax.legend()
+
+    @torch.no_grad()
+    def plot_feature_density_histogram(
+        self, dataset, batch_size: int = 128, bins: int = 35
+    ):
+        # for each experiment, load sae, compute feature density
+        fig, ax = plt.subplots(1, 1, figsize=(15, 5))
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        for experiment_name, data in self.experiments.items():
+            experiment_dir = data["experiment_dir"]
+            config_path = os.path.join(experiment_dir, "sae_config.json")
+            weights_path = os.path.join(experiment_dir, "sae.pth")
+
+            sae = SAE.load_from_checkpoint(config_path, weights_path)
+            sae.eval()
+            sae.to(device)
+
+            activations_info = get_activations_info(sae, dataset, batch_size, top_k=1)
+            eps = torch.finfo(activations_info.activation_density_per_feature.dtype).eps
+            log_activation_density_per_feature = torch.log10(
+                activations_info.activation_density_per_feature + eps
+            )
+
+            ax.hist(
+                log_activation_density_per_feature,
+                bins=bins,
+                label=experiment_name,
+                histtype="step",
+            )
+
+        ax.legend()
+        ax.set_title("Feature Density Histogram")
+        ax.set_xlabel("log10(Activation Density)")
+        ax.set_ylabel("Count")
+
+    def plot_dead_features(self, dataset, batch_size: int = 128):
+        fig, ax = plt.subplots(1, 1, figsize=(15, 5))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        columns = []
+        values = []
+        for experiment_name, data in self.experiments.items():
+            experiment_dir = data["experiment_dir"]
+            config_path = os.path.join(experiment_dir, "sae_config.json")
+            weights_path = os.path.join(experiment_dir, "sae.pth")
+
+            sae = SAE.load_from_checkpoint(config_path, weights_path)
+            sae.eval()
+            sae.to(device)
+
+            activations_info = get_activations_info(sae, dataset, batch_size, top_k=1)
+            dead_neurons = activations_info.dead_neurons
+
+            columns.append(experiment_name)
+            values.append(dead_neurons)
+
+        ax.bar(columns, values)
+        ax.set_title("Dead Neurons")
+        ax.set_ylabel("# of Dead Neurons")
+        ax.set_xlabel("Experiment Config")
 
 
 @dataclass
@@ -20,6 +145,7 @@ class ActivationsInfo:
     activation_density_per_feature: torch.Tensor
     top_k_indices_per_feature: torch.Tensor
     top_k_activations_per_feature: torch.Tensor
+    dead_neurons: int
 
 
 @torch.no_grad()
@@ -79,7 +205,8 @@ def get_activations_info(
 
     # [D] activation density for each feature
     binary_activations = (activations != 0).float()
-    activation_density = torch.sum(binary_activations, dim=1) / activations.shape[0]
+    activation_density = torch.sum(binary_activations, dim=1) / activations.shape[1]
+    dead_neurons = activation_density[activation_density == 0].shape[0]
 
     # get top k samples for each feature
     topk_result = torch.topk(activations, k=top_k, dim=1)
@@ -91,4 +218,5 @@ def get_activations_info(
         activation_density_per_feature=activation_density,
         top_k_indices_per_feature=topk_indices,
         top_k_activations_per_feature=topk_activations,
+        dead_neurons=dead_neurons,
     )

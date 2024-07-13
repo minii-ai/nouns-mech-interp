@@ -88,7 +88,13 @@ class SAE(nn.Module):
         return f
 
     def decode(self, x: torch.Tensor):
-        x = x @ self.W_d + self.b_d
+        if self.training:
+            mag = self.W_d.pow(2).sum(dim=1, keepdim=True).sqrt()
+            eps = torch.finfo(mag.dtype).eps
+            x = x @ (self.W_d / (mag + eps)) + self.b_d
+        else:
+            x = x @ self.W_d + self.b_d
+
         return x
 
     def forward(self, x: torch.Tensor) -> SAEOutput:

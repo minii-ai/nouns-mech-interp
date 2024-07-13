@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import torch
 from PIL import Image
 from torch.optim import Adam
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 from tqdm import tqdm
@@ -88,7 +88,6 @@ class SAETrainer:
                 optimizer.zero_grad()
                 loss_output.loss.backward()
                 optimizer.step()
-                model.set_features_to_unit_norm()  # features must be unit norm
 
                 # log losses to tensorboard
                 self.writer.add_scalar("loss", loss_output.loss.item(), iteration)
@@ -125,6 +124,7 @@ class SAETrainer:
             if iteration >= self.config.iterations:
                 break
 
+        model.set_features_to_unit_norm()  # features must be unit norm
         checkpoint_path = os.path.join(self.save_dir, f"sae.pth")
         torch.save(
             model.state_dict(),
