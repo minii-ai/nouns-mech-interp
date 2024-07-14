@@ -2,7 +2,10 @@ import os
 from dataclasses import dataclass
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from tensorboard.backend.event_processing import event_accumulator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -145,6 +148,9 @@ class ActivationsInfo:
     activation_density_per_feature: torch.Tensor
     top_k_indices_per_feature: torch.Tensor
     top_k_activations_per_feature: torch.Tensor
+    mean_activation_per_feature: torch.Tensor
+    max_activation_per_feature: torch.Tensor
+    variance_activation_per_feature: torch.Tensor
     dead_neurons: int
 
 
@@ -200,13 +206,22 @@ def get_activations_info(
         else:
             activations = torch.cat([activations, batch_activations], dim=0)
 
-    # make each row represent a feature
+    # make each row represent a feature [D, N]
     activations = activations.T
 
     # [D] activation density for each feature
     binary_activations = (activations != 0).float()
     activation_density = torch.sum(binary_activations, dim=1) / activations.shape[1]
     dead_neurons = activation_density[activation_density == 0].shape[0]
+
+    # mean activations
+    mean_activations_per_feature = activations.mean(dim=1)
+
+    # max activations
+    max_activations_per_feature = activations.max(dim=1).values
+
+    # variance activations
+    variance_activations_per_feature = activations.var(dim=1)
 
     # get top k samples for each feature
     topk_result = torch.topk(activations, k=top_k, dim=1)
@@ -218,5 +233,20 @@ def get_activations_info(
         activation_density_per_feature=activation_density,
         top_k_indices_per_feature=topk_indices,
         top_k_activations_per_feature=topk_activations,
+        mean_activation_per_feature=mean_activations_per_feature,
+        max_activation_per_feature=max_activations_per_feature,
+        variance_activation_per_feature=variance_activations_per_feature,
         dead_neurons=dead_neurons,
     )
+
+
+@torch.no_grad()
+def get_features_pca2(sae: SAE) -> np.ndarray:
+    scaler = StandardScaler()
+    pca = PCA(n_components=2)
+
+    features = sae.features.cpu().numpy()
+    features_scaled = scaler.fit_transform(features)
+    features_pca = pca.fit_transform(features_scaled)
+
+    return features_pca
