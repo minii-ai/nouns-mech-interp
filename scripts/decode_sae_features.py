@@ -3,11 +3,14 @@ import os
 import sys
 
 import torch
+import torch.nn.functional as F
 import torchvision.transforms as transforms
 from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
+from vae_interp.analysis import get_activations_info
+from vae_interp.dataset import NpyDataset
 from vae_interp.sae import SAE
 from vae_interp.vae import VAE
 
@@ -63,22 +66,33 @@ def main(args):
     sae.eval()
     sae.to(device)
 
+    # get max activation for each feature
+    dataset = NpyDataset(args.vae_embeddings)
+    activations_info = get_activations_info(
+        sae, dataset, batch_size=256, top_k=1, device=device
+    )
+    max_activation_per_feature = activations_info.max_activation_per_feature
+
     batch_size = 256
     num_features = sae.features.shape[0]
     to_image = transforms.ToPILImage()
 
     with torch.no_grad():
         for i in tqdm(range(0, num_features, batch_size)):
-            # decode features into image tensors
-            batch_features = (
-                sae.features[i : i + batch_size].view(-1, *latent_shape).to(device)
-            )  # [b, d] -> [b, ...latent_shape]
+            # create one hot encoding of sparse vector [b, f]
+            sparse_binary_code = F.one_hot(
+                torch.arange(i, i + batch_size), num_classes=num_features
+            ).to(device)
 
-            batch_features = batch_features + sae.b_d.view(
-                1, *latent_shape
-            )  # [b, ...latent_shape]
+            # [b, 1]
+            activations = (
+                max_activation_per_feature[i : i + batch_size].view(-1, 1).to(device)
+            )
 
-            decoded = vae.decode(batch_features).cpu()
+            sparse_latent = sparse_binary_code * activations  # [b, f]
+            vae_latent = sae.decode(sparse_latent)  # [b, d]
+            vae_latent = vae_latent.view(-1, *latent_shape)  # [b, ...latent_shape]
+            decoded = vae.decode(vae_latent).cpu()  # [b, c, h, w]
 
             # convert image tensors into images
             for decoded_tensor, idx in zip(decoded, range(i, i + batch_size)):
@@ -94,4 +108,5 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    main(args)
     main(args)
