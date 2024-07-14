@@ -74,11 +74,20 @@ def main(args):
                 sae.features[i : i + batch_size].view(-1, *latent_shape).to(device)
             )  # [b, d] -> [b, ...latent_shape]
 
+            batch_features = batch_features + sae.b_d.view(
+                1, *latent_shape
+            )  # [b, ...latent_shape]
+
             decoded = vae.decode(batch_features).cpu()
 
             # convert image tensors into images
             for decoded_tensor, idx in zip(decoded, range(i, i + batch_size)):
                 save_path = os.path.join(args.output_dir, f"{idx}.png")
+
+                # normalize b/w 0 and 1 using min max
+                decoded_tensor = (decoded_tensor - decoded_tensor.min()) / (
+                    decoded_tensor.max() - decoded_tensor.min()
+                )
                 image = to_image(decoded_tensor)
                 image.save(save_path)
 
