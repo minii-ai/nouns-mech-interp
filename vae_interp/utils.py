@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import torch
+from PIL import Image
 
 from .vae import VAE
 
@@ -48,8 +49,19 @@ def interpolate_vae_latents(
     plt.show()
 
 
-# Example usage:
-# vae = VAE(in_channels=3, num_hiddens=[32, 64, 128, 256], latent_dim=128)
-# img1 = torch.randn(3, 64, 64)  # Replace with actual image tensor
-# img2 = torch.randn(3, 64, 64)  # Replace with actual image tensor
-# interpolate_vae_latents(vae, img1, img2, num_steps=10)
+# https://github.com/huggingface/diffusers/blob/v0.29.2/src/diffusers/utils/pil_utils.py
+def make_image_grid(images, rows: int, cols: int, resize: int = None):
+    """
+    Prepares a single grid of images. Useful for visualization purposes.
+    """
+    assert len(images) == rows * cols
+
+    if resize is not None:
+        images = [img.resize((resize, resize)) for img in images]
+
+    w, h = images[0].size
+    grid = Image.new("RGB", size=(cols * w, rows * h))
+
+    for i, img in enumerate(images):
+        grid.paste(img, box=(i % cols * w, i // cols * h))
+    return grid

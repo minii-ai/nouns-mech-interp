@@ -64,6 +64,10 @@ class SAE(nn.Module):
         }
 
     @property
+    def num_features(self):
+        return self.W_d.shape[0]
+
+    @property
     def features(self):
         """
         Get the features of the sparse autoencoder. Returns a (M, N) tensor where M is the number of features and N
