@@ -38,6 +38,9 @@ class NounsDataset(Dataset):
 
         return image
 
+    def get_text(self, idx):
+        return self.dataset[idx]["text"]
+
 
 class NpyDataset(Dataset):
     def __init__(self, npy_path: str):
