@@ -34,11 +34,11 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
   return (
     <div className="bg-white">
       <div className="flex flex-row items-center space-x-2">
-        <img src={baseUrl} className="h-8 w-8 rounded-md" />
-        <p className="text-lg">#{feature.id}</p>
-        <p className="text-lg font-medium">{feature.name}</p>
+        <img src={baseUrl} className="h-[48px] w-[48px] rounded-md" />
+        <p className="text-xl">#{feature.id}</p>
+        <p className="text-xl font-semibold">{feature.name}</p>
       </div>
-      <div className="flex flex-row justify-between mt-3">
+      <div className="flex flex-row justify-between mt-4">
         <div>
           <p className="text-md font-medium mb-3">SIMILAR FEATURES</p>
           <div className="space-y-2">

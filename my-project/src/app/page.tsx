@@ -51,7 +51,7 @@ export default function Home() {
     );
 
     setSelectedFeature(selectedFeature);
-    router.push(`/features-explorer?id=${id}`);
+    router.push(`/features-explorer/${id}`);
   };
 
   return (
