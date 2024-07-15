@@ -1,8 +1,6 @@
 "use client";
-import { useState } from "react";
-import FeaturesTable from "./components/FeaturesTable";
-import PCAPlot from "./components/PCAPlot";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import FeatureCard from "../components/Feature";
 
 interface DataPoint {
   id: number;
@@ -11,7 +9,7 @@ interface DataPoint {
   y: number;
 }
 
-const featuresPCA: DataPoint[] = [
+const features: DataPoint[] = [
   { x: 70, y: 80, name: "Burger", id: 101 },
   { x: 90, y: 100, name: "Pizza", id: 102 },
   { x: 110, y: 120, name: "Ice Cream", id: 103 },
@@ -31,31 +29,33 @@ const featuresPCA: DataPoint[] = [
   { x: 390, y: 400, name: "Pancakes", id: 117 },
 ];
 
-export default function Home() {
-  const router = useRouter();
+function FeaturesExplorer() {
+  const id = 100;
+
   const [selectedFeature, setSelectedFeature] = useState<
     DataPoint | undefined
   >();
 
-  const handleSelectedFeature = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
+  const [searchTerm, setSearchTerm] = useState("");
+  const featureRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
-    setSelectedFeature(selectedFeature);
-  };
+  const filteredFeatures = features.filter(
+    (feature: any) =>
+      feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      feature.id.toString().includes(searchTerm.toLowerCase())
+  );
 
-  const handleMoreInfo = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
-
-    setSelectedFeature(selectedFeature);
-    router.push(`/features-explorer?id=${id}`);
-  };
+  useEffect(() => {
+    if (selectedFeature) {
+      const ref = featureRefs.current[selectedFeature.id];
+      if (ref) {
+        ref.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+  }, [selectedFeature]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white p-4">
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">
           Diffusion Interpretability.
@@ -67,14 +67,25 @@ export default function Home() {
           latent space.
         </p>
       </div>
-      <div className="flex flex-row mt-8 bg-gray-100 p-2 space-x-3">
-        <PCAPlot data={featuresPCA} onSelect={handleSelectedFeature} />
-        <FeaturesTable
-          features={featuresPCA}
-          onClick={handleMoreInfo}
-          selectedFeature={selectedFeature}
+      <div className="h-full">
+        <input
+          type="text"
+          placeholder="Search features..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mb-4 active:border-none focus:border-none"
         />
+        <div>
+          {filteredFeatures.map((feature) => (
+            <div key={feature.id}>
+              <FeatureCard feature={feature} />
+              <div className="bg-gray-200 h-[1px] my-6" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
+
+export default FeaturesExplorer;
