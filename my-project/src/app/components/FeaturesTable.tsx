@@ -45,48 +45,47 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
           placeholder="Search features..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="mb-4 active:border-none focus:border-none"
+          className="mb-4 active:border-none focus:border-none focus:outline-none w-full"
         />
         <div className="overflow-y-scroll max-h-[312px]">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y">
+            <thead className="">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider max-w-[100px]">
                   Feature
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-full"></th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y">
               {filteredFeatures.map((feature: DataPoint) => (
                 <tr
                   key={feature.id}
                   ref={(el) => {
                     featureRefs.current[feature.id] = el;
                   }}
+                  onClick={() => onClick(feature.id)}
                   onMouseEnter={() => setHoveredId(feature.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className={`hover:bg-gray-50 transition-colors duration-200 ${
-                    selectedFeature?.id === feature.id ? "bg-yellow-100" : ""
+                  className={`hover:bg-gray-50 transition-colors cursor-pointer duration-200 ${
+                    selectedFeature?.id === feature.id ? "bg-gray-100" : ""
                   }`}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    # {feature.id}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex flex-row items-center max-w-[100px]">
+                    <div className="h-2 w-2 rounded-full bg-orange-800 mr-2" />
+                    <div># {feature.id}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {feature.name}
-                  </td>
-                  <td className="py-2 whitespace-nowrap text-sm text-gray-500 min-w-[150px]">
-                    {(hoveredId === feature.id ||
-                      selectedFeature?.id === feature.id) && (
-                      <button
-                        onClick={() => onClick(feature.id)}
-                        className="transition-opacity duration-200">
-                        More Info
-                      </button>
-                    )}
+                    <div className="flex flex-row items-center justify-between">
+                      <div>{feature.name}</div>
+                      {(hoveredId === feature.id ||
+                        selectedFeature?.id === feature.id) && (
+                        <button
+                          onClick={() => onClick(feature.id)}
+                          className="transition-opacity duration-200 ml-4 underline text-orange-800">
+                          More Info
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
