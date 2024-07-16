@@ -58,7 +58,7 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
+db.sqlite3 
 db.sqlite3-journal
 
 # Flask stuff:
@@ -165,3 +165,4 @@ checkpoints/
 results/
 data/
 *.out
+interp_dataset/
