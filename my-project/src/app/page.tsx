@@ -68,7 +68,11 @@ export default function Home() {
         </p>
       </div>
       <div className="flex flex-row mt-8 bg-gray-100 p-2 space-x-3">
-        <PCAPlot data={featuresPCA} onSelect={handleSelectedFeature} />
+        <PCAPlot
+          data={featuresPCA}
+          onSelect={handleSelectedFeature}
+          selectedFeature={selectedFeature}
+        />
         <FeaturesTable
           features={featuresPCA}
           onClick={handleMoreInfo}

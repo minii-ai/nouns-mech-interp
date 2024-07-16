@@ -12,9 +12,14 @@ interface DataPoint {
 interface PCAPlotProps {
   data: DataPoint[];
   onSelect?: (id: number) => void;
+  selectedFeature?: DataPoint;
 }
 
-const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
+const PCAPlot: React.FC<PCAPlotProps> = ({
+  data,
+  onSelect,
+  selectedFeature,
+}) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{
     x: number;
@@ -29,6 +34,7 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
     name: "",
     visible: false,
   });
+
   const width = 600;
   const height = 400;
 
@@ -39,6 +45,8 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
       .attr("height", height)
       .style("background", "#f0f0f0")
       .style("overflow", "visible");
+
+    svg.selectAll("*").remove();
 
     const xScale = d3
       .scaleLinear()
@@ -55,6 +63,7 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
       .ticks(10)
       .tickSize(-height)
       .tickFormat(() => "");
+
     const yAxis = d3
       .axisLeft(yScale)
       .ticks(10)
@@ -76,17 +85,38 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
       .selectAll(".tick line")
       .attr("stroke", "white");
 
-    svg
-      .selectAll(".dot")
+    const dotGroups = svg
+      .selectAll(".dot-group")
       .data(data)
       .enter()
+      .append("g")
+      .attr("class", "dot-group")
+      .attr("transform", (d) => `translate(${xScale(d.x)}, ${yScale(d.y)})`)
+      .style("cursor", "pointer");
+
+    // Add padding circle with border
+    dotGroups
       .append("circle")
-      .attr("cx", (d) => xScale(d.x))
-      .attr("cy", (d) => yScale(d.y))
+      .attr("class", "padding-circle")
+      .attr("r", 6)
+      .attr("fill", "transparent")
+      .attr("opacity", 0.5)
+      .attr("stroke", (d) => (d.id === selectedFeature?.id ? "black" : "none"))
+      .attr("stroke-width", (d) => (d.id === selectedFeature?.id ? 1 : 0));
+
+    // Add main dot
+    dotGroups
+      .append("circle")
+      .attr("class", "main-dot")
       .attr("r", 3)
-      .attr("fill", "brown")
-      .style("cursor", "pointer")
-      .on("mouseover", (event, d) => {
+      .attr("fill", "brown");
+
+    dotGroups
+      .on("mouseover", function (event, d) {
+        d3.select(this)
+          .select(".padding-circle")
+          .attr("stroke", "black")
+          .attr("stroke-width", 1);
         setTooltip({
           x: xScale(d.x),
           y: yScale(d.y),
@@ -105,7 +135,11 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
           visible: true,
         });
       })
-      .on("mouseout", () => {
+      .on("mouseout", function (event, d) {
+        d3.select(this)
+          .select(".padding-circle")
+          .attr("stroke", d.id === selectedFeature?.id ? "black" : "none")
+          .attr("stroke-width", d.id === selectedFeature?.id ? 1 : 0);
         setTooltip({
           x: 0,
           y: 0,
@@ -127,10 +161,10 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ data, onSelect }) => {
       .append("text")
       .text((d) => `#${d.id}`)
       .attr("x", (d) => xScale(d.x))
-      .attr("y", (d) => yScale(d.y) - 2.5)
+      .attr("y", (d) => yScale(d.y) - 8)
       .attr("font-size", "10px")
       .attr("text-anchor", "middle");
-  }, [data, height, width, onSelect]);
+  }, [data, height, width, onSelect, selectedFeature]);
 
   return (
     <div className="relative">
