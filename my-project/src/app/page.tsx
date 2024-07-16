@@ -1,113 +1,84 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import FeaturesTable from "./components/FeaturesTable";
+import PCAPlot from "./components/PCAPlot";
+import { useRouter } from "next/navigation";
+
+interface DataPoint {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+}
+
+const featuresPCA: DataPoint[] = [
+  { x: 70, y: 80, name: "Burger", id: 101 },
+  { x: 90, y: 100, name: "Pizza", id: 102 },
+  { x: 110, y: 120, name: "Ice Cream", id: 103 },
+  { x: 130, y: 140, name: "Fries", id: 104 },
+  { x: 150, y: 160, name: "Taco", id: 105 },
+  { x: 170, y: 180, name: "Nachos", id: 106 },
+  { x: 190, y: 200, name: "Pasta", id: 107 },
+  { x: 210, y: 220, name: "Sushi", id: 108 },
+  { x: 230, y: 240, name: "Salad", id: 109 },
+  { x: 250, y: 260, name: "Sandwich", id: 110 },
+  { x: 270, y: 280, name: "Soup", id: 111 },
+  { x: 290, y: 300, name: "Steak", id: 112 },
+  { x: 310, y: 320, name: "Chicken", id: 113 },
+  { x: 330, y: 340, name: "Fish", id: 114 },
+  { x: 350, y: 360, name: "Eggs", id: 115 },
+  { x: 370, y: 380, name: "Waffles", id: 116 },
+  { x: 390, y: 400, name: "Pancakes", id: 117 },
+];
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+  const router = useRouter();
+  const [selectedFeature, setSelectedFeature] = useState<
+    DataPoint | undefined
+  >();
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+  const handleSelectedFeature = (id: number) => {
+    const selectedFeature = featuresPCA.find(
+      (feature: any) => feature.id === id
+    );
+
+    setSelectedFeature(selectedFeature);
+  };
+
+  const handleMoreInfo = (id: number) => {
+    const selectedFeature = featuresPCA.find(
+      (feature: any) => feature.id === id
+    );
+
+    setSelectedFeature(selectedFeature);
+    router.push(`/features-explorer/${id}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Diffusion Interpretability.
+        </h1>
+        <p className="mt-5 text-xl text-gray-500">
+          Playground for interpreting and exploring the features from the VAE
+          latent space. <br />
+          Playground for interpreting and exploring the features from the VAE
+          latent space.
+        </p>
+      </div>
+      <div className="flex flex-row mt-8 bg-gray-100 p-2 space-x-3">
+        <PCAPlot
+          data={featuresPCA}
+          onSelect={handleSelectedFeature}
+          selectedFeature={selectedFeature}
+        />
+        <FeaturesTable
+          features={featuresPCA}
+          onClick={handleMoreInfo}
+          selectedFeature={selectedFeature}
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
