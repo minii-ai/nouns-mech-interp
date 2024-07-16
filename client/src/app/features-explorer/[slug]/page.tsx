@@ -71,11 +71,12 @@ function FeaturesExplorer() {
 
   return (
     <div className="min-h-screen bg-white p-4">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Diffusion Interpretability.
-        </h1>
-        <p className="mt-5 text-xl text-gray-500">
+      <div className="flex flex-row items-center font-medium text-sm p-8">
+        <p className="mr-1">Swiggle</p>
+        <p className="text-gray-500">Feature Explorer.</p>
+      </div>
+      <div className="max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8">
+        <p className="mt-5 text-base text-gray-500">
           Playground for interpreting and exploring the features from the VAE
           latent space.
         </p>

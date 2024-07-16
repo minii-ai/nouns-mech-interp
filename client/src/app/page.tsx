@@ -56,18 +56,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-row items-center font-medium text-sm p-8">
+        <p className="mr-1">Swiggle</p>
+        <p className="text-gray-500">Feature Explorer.</p>
+      </div>
+      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl font-semibold text-gray-900">
-          Diffusion Interpretability.
+          Explore Learned Features
         </h1>
-        <p className="mt-5 text-xl text-gray-500">
-          Playground for interpreting and exploring the features from the VAE
-          latent space. <br />
-          Playground for interpreting and exploring the features from the VAE
-          latent space.
+        <p className="mt-5 text-gray-500">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
         </p>
       </div>
-      <div className="flex flex-row mt-8 bg-gray-100 p-2 space-x-3">
+      <div className="flex flex-row mt-10 bg-gray-100 p-2 space-x-3">
         <PCAPlot
           data={featuresPCA}
           onSelect={handleSelectedFeature}
