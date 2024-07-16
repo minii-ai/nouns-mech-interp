@@ -114,6 +114,8 @@ def sigmoid_schedule(epoch, total_epochs, max_beta=1.0):
 
 
 def main(args):
+    torch.manual_seed(0)
+
     # conver num_hiddens from string to list of integers
     num_hiddens = [int(x) for x in args.num_hiddens.split(",")]
 
@@ -170,19 +172,12 @@ def main(args):
                 break
 
             x = batch.to(device)
-            # beta = iteration / (args.iterations - 1)
-            # beta = sigmoid_schedule(
-            #     iteration, args.iterations - 1, max_beta=args.max_beta
-            # )
-            # beta = args.max_beta
-            # loss_dict = vae.loss(x, beta)
+
             if iteration < 1000:
                 beta = 0
             else:
-                # beta = sigmoid_schedule(
-                #     iteration - 1000, args.iterations - 1 - 1000, max_beta=args.max_beta
-                # )
                 beta = args.max_beta / (args.iterations - 1000) * (iteration - 1000)
+            # beta = args.max_beta
             loss_dict = vae.loss(x, beta)
             loss = loss_dict["loss"]
 

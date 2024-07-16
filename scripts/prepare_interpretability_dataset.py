@@ -126,11 +126,17 @@ def main(args):
             ax.set_xticks([])
             ax.set_yticks([])
 
-        plt.tight_layout()
-
         # save feature image
         feature_save_path = os.path.join(features_dir, "feature.png")
         feature_image.save(feature_save_path)
+
+        # save top k images
+        topk_save_path = os.path.join(features_dir, "topk.png")
+        topk_images_grid.save(topk_save_path)
+
+        # save ablations
+        ablations_save_path = os.path.join(features_dir, "ablations.png")
+        ablations.save(ablations_save_path)
 
         # save figure
         save_path = os.path.join(features_dir, "feature_topk_ablations.png")

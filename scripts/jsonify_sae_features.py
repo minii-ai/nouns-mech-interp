@@ -99,7 +99,7 @@ def main(args):
             "vector": feature_vector,
             "top_k_images": top_k_images,
             "similar_features": top_k_similar_features,
-            "activation_densities": activation_sparse,
+            "activations": activation_sparse,
             "activation_density": activation_density,
             "pca": pca,
         }
