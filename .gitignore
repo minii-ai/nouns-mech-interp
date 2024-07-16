@@ -165,5 +165,4 @@ checkpoints/
 results/
 data/
 *.out
-
 interp_dataset/
