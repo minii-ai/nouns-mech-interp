@@ -5,12 +5,10 @@ class ReconstructedImageFeatureBucket:
         self.bucket = supabase_client.storage.from_('ReconstructedFeatureImages')
 
     def size(self):
-        print('I was called')
         return len(self.bucket.list())
 
-    def is_clear(self):
-        images_list = self.bucket.list()
-        return len(images_list) == 0
+    def isEmpty(self):
+        return self.size() == 0
 
     def download(self, file_path: str, download_path: str):
         response = self.bucket.download(file_path)
@@ -24,5 +22,18 @@ class ReconstructedImageFeatureBucket:
 
 image_features_db = ReconstructedImageFeatureBucket()
 
+
+def _upload_feature_image(feature_id):
+    FEATURE_IMAGES_DIR= '../data/interp_dataset/'
+    source = f'{FEATURE_IMAGES_DIR}{feature_id}/feature.png'
+    destination = f'./{feature_id}.png'
+    image_features_db.upload(source, destination)
+    print(f'Feature {feature_id} was successfully uploaded')
+
+def _upload_all_feature_images():
+    for i in range(0, 512):
+        _upload_feature_image(i)
+
+
 if __name__ == '__main__':
-    print(image_features_db.size())
+    if image_features_db.isEmpty(): _upload_all_feature_images()
