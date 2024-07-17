@@ -44,6 +44,7 @@ function ImagePlayground() {
   const [modifiedFeatures, setModifiedFeatures] = useState<Feature[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [modifiedImageUrl, setModifiedImageUrl] = useState(baseUrl);
+  const [featureSearchQuery, setFeatureSearchQuery] = useState("");
   const router = useRouter();
 
   const handleSliderChange = (id: number, newValue: number) => {
@@ -100,13 +101,26 @@ function ImagePlayground() {
     setFeatures(featuresMock);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      // Add your logic here for what should happen when the "Enter" key is pressed
+      console.log(featureSearchQuery);
+      console.log("Enter key pressed");
+      setFeatureSearchQuery("");
+    }
+  };
+
   useEffect(() => {}, [modifiedImageUrl]);
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="flex flex-row items-center font-medium text-sm p-8">
-        <p className="mr-1">Swiggle</p>
-        <p className="text-gray-500">Image Playground.</p>
+      <div className="w-full flex flex-col items-center justify-center mb-6">
+        <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
+          <p className="cursor-pointer" onClick={() => router.push("/")}>
+            Swiggle
+          </p>
+          <p className="text-gray-500">Image Playground.</p>
+        </div>
       </div>
       <div className="flex justify-between mb-8 px-[100px] h-screen">
         <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center mb-[84px]">
@@ -156,7 +170,9 @@ function ImagePlayground() {
                         <p className="text-xl font-semibold">{feature.name}</p>
                       </div>
                       <div className="flex flex-row items-center">
-                        <p>{formatActivation(displayActivation)}</p>
+                        <p className="min-w-7 max-w-7 w-7">
+                          {formatActivation(displayActivation)}
+                        </p>
                         <input
                           type="range"
                           min="0"
@@ -209,10 +225,17 @@ function ImagePlayground() {
                 </div>
               </div>
             ))}
-            <div onClick={() => console.log("adding feature")}>Add Feature</div>
           </div>
         </div>
       </div>
+      <input
+        type="text"
+        className="absolute px-3 py-3 bottom-4 left-1/2 transform -translate-x-1/2 w-1/3 border border-gray-300 rounded-md focus:ring-none focus:outline-none"
+        placeholder="Add a shark hat"
+        value={featureSearchQuery}
+        onChange={(e) => setFeatureSearchQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
     </div>
   );
 }

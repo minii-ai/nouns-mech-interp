@@ -36,27 +36,27 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
   };
 
   return (
-    <div className="bg-white">
+    <div className="bg-[#f9fafb] rounded p-4 border-gray-100 border">
       <div className="flex flex-row items-center space-x-2">
         <img src={baseUrl} className="h-[48px] w-[48px] rounded-md" />
-        <p className="text-xl">#{feature.id}</p>
-        <p className="text-xl font-semibold">{feature.name}</p>
+        <p className="text-lg">#{feature.id}</p>
+        <p className="text-lg font-medium">{feature.name}</p>
       </div>
       <div className="flex flex-row justify-between mt-4">
         <div>
-          <p className="text-md font-medium mb-3">SIMILAR FEATURES</p>
-          <div className="space-y-2">
+          <p className="text-sm font-medium mb-4">Similar Features</p>
+          <div className="space-y-3">
             {similarFeatures.map((similar: any, i: any) => (
               <div className="flex flex-row space-x-2 items-center" key={i}>
                 <img src={baseUrl} className="h-6 w-6 rounded-md" />
-                <p className="text-lg">{similar.name}</p>
-                <p className="text-lg">{similar.strength}</p>
+                <p className="text-sm">{similar.name}</p>
+                <p className="text-sm">{similar.strength}</p>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <p className="text-md font-medium mb-3">TOP ACTIVATIONS</p>
+          <p className="text-sm font-medium mb-4">Top Activations</p>
           {
             <div className="flex flex-row space-x-2">
               {similarFeatures.map((similar: any, i: any) => (
@@ -66,14 +66,14 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
                     className="h-[100px] w-[100px] rounded-md cursor-pointer"
                     onClick={() => handleGotoPlayground(similar.id)}
                   />
-                  <p className="text-lg">{similar.strength}</p>
+                  <p className="text-sm mt-2">{similar.strength}</p>
                 </div>
               ))}
             </div>
           }
         </div>
         <div>
-          <p className="text-md font-medium mb-3">ACTIVATION DENSITY (0.05%)</p>
+          <p className="text-sm font-medium mb-4">Activation Density (0.05%)</p>
           <DensityHistogram data={densityHist} />
         </div>
       </div>
