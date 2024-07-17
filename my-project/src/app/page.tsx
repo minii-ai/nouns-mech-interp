@@ -1,91 +1,96 @@
 "use client";
-import { useState } from "react";
-import FeaturesTable from "./components/FeaturesTable";
-import PCAPlot from "./components/PCAPlot";
 import { useRouter } from "next/navigation";
+import React from "react";
+import twitterLogo from "../../public/logo-black.png";
 
-interface DataPoint {
-  id: number;
-  name: string;
-  x: number;
-  y: number;
-}
+const logo: string = twitterLogo as unknown as string;
 
-const featuresPCA: DataPoint[] = [
-  { x: 70, y: 80, name: "Burger", id: 101 },
-  { x: 90, y: 100, name: "Pizza", id: 102 },
-  { x: 110, y: 120, name: "Ice Cream", id: 103 },
-  { x: 130, y: 140, name: "Fries", id: 104 },
-  { x: 150, y: 160, name: "Taco", id: 105 },
-  { x: 170, y: 180, name: "Nachos", id: 106 },
-  { x: 190, y: 200, name: "Pasta", id: 107 },
-  { x: 210, y: 220, name: "Sushi", id: 108 },
-  { x: 230, y: 240, name: "Salad", id: 109 },
-  { x: 250, y: 260, name: "Sandwich", id: 110 },
-  { x: 270, y: 280, name: "Soup", id: 111 },
-  { x: 290, y: 300, name: "Steak", id: 112 },
-  { x: 310, y: 320, name: "Chicken", id: 113 },
-  { x: 330, y: 340, name: "Fish", id: 114 },
-  { x: 350, y: 360, name: "Eggs", id: 115 },
-  { x: 370, y: 380, name: "Waffles", id: 116 },
-  { x: 390, y: 400, name: "Pancakes", id: 117 },
-];
-
-export default function Home() {
+const About: React.FC = () => {
   const router = useRouter();
-  const [selectedFeature, setSelectedFeature] = useState<
-    DataPoint | undefined
-  >();
 
-  const handleSelectedFeature = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
-
-    setSelectedFeature(selectedFeature);
+  const handleGotoFeatures = () => {
+    router.push(`/features-explorer`);
   };
 
-  const handleMoreInfo = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
-
-    setSelectedFeature(selectedFeature);
-    router.push(`/features-explorer/${id}`);
+  const handleGotoPlayground = (id = null) => {
+    router.push(`/image-playground/${id}`);
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="flex flex-row items-center font-medium text-sm p-8">
-        <p className="mr-1">Swiggle</p>
-        <p className="text-gray-500">Feature Explorer.</p>
-      </div>
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Explore Learned Features
-        </h1>
-        <p className="mt-5 text-gray-500">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-      </div>
-      <div className="flex flex-row mt-10 bg-gray-100 p-2 space-x-3">
-        <PCAPlot
-          data={featuresPCA}
-          onSelect={handleSelectedFeature}
-          selectedFeature={selectedFeature}
-        />
-        <FeaturesTable
-          features={featuresPCA}
-          onClick={handleMoreInfo}
-          selectedFeature={selectedFeature}
-        />
+    <div className="w-full flex items-center justify-center bg-white pb-8">
+      <div className="max-w-2xl pt-4">
+        <h1 className="text-sm font-medium mb-6">Swiggle</h1>
+        <div className="mb-[64px] mt-[100px]">
+          <h1 className="text-2xl font-medium mb-6">
+            Diffusion Interpretability Research
+          </h1>
+          <p className="text-sm mb-6">
+            Playground for interpreting and exploring the features from the VAE
+            latent space. <br />
+            Playground for interpreting and exploring the features from the VAE
+            latent space.
+          </p>
+          <div className="flex space-x-4">
+            <button
+              className="px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
+              onClick={() => handleGotoFeatures()}>
+              Feature Explorer →
+            </button>
+            <button
+              className="px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
+              onClick={() => handleGotoPlayground()}>
+              Image Playground →
+            </button>
+          </div>
+        </div>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-medium mb-5">Creative Control.</h2>
+          <p className="text-sm mb-4 text-gray-500">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+            aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+          <div className="border rounded-lg p-4 flex items-center justify-center h-72"></div>
+          <p className="text-sm text-gray-500 mt-2">Control Demo</p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-medium mb-5">Security.</h2>
+          <p className="text-sm mb-4 text-gray-500">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+            aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+          <div className="border rounded-lg p-4 flex items-center justify-center h-72"></div>
+          <p className="text-sm text-gray-500 mt-2">Security Demo</p>
+        </section>
+
+        <footer className="flex items-center justify-center">
+          <button className="flex flex-row items-center px-5 py-3 border rounded-full hover:bg-gray-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              className="bi bi-twitter-x"
+              viewBox="0 0 16 16">
+              <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z" />
+            </svg>
+            <p className="ml-2">@Swiggle</p>
+          </button>
+        </footer>
       </div>
     </div>
   );
-}
+};
+
+export default About;
