@@ -36,13 +36,13 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
   };
 
   return (
-    <div className="bg-[#f9fafb] rounded p-4 border-gray-100 border">
+    <div className="bg-[#f9fafb] rounded-xl p-4 border-gray-100 border">
       <div className="flex flex-row items-center space-x-2">
         <img src={baseUrl} className="h-[48px] w-[48px] rounded-md" />
         <p className="text-lg">#{feature.id}</p>
         <p className="text-lg font-medium">{feature.name}</p>
       </div>
-      <div className="flex flex-row justify-between mt-4">
+      <div className="text-gray-500 flex flex-row justify-between mt-5">
         <div>
           <p className="text-sm font-medium mb-4">Similar Features</p>
           <div className="space-y-3">
@@ -58,13 +58,16 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
         <div>
           <p className="text-sm font-medium mb-4">Top Activations</p>
           {
-            <div className="flex flex-row space-x-2">
+            <div className="flex flex-row space-x-3">
               {similarFeatures.map((similar: any, i: any) => (
                 <div className="flex flex-col items-center" key={i}>
-                  <img
+                  <Image
                     src={baseUrl}
-                    className="h-[100px] w-[100px] rounded-md cursor-pointer"
+                    className="rounded-md cursor-pointer"
                     onClick={() => handleGotoPlayground(similar.id)}
+                    width={72}
+                    height={72}
+                    alt={similar.id}
                   />
                   <p className="text-sm mt-2">{similar.strength}</p>
                 </div>

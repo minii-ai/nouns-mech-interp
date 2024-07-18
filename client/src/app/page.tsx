@@ -12,8 +12,8 @@ const About: React.FC = () => {
     router.push(`/features-explorer`);
   };
 
-  const handleGotoPlayground = (id = null) => {
-    router.push(`/image-playground/${id}`);
+  const handleGotoPlayground = () => {
+    router.push(`/image-playground`);
   };
 
   return (
