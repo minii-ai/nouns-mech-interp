@@ -33,7 +33,7 @@ function FeaturesExplorer() {
     const fetchData = async () => {
       setLoadingFeatures(true);
       try {
-        const response = await fetcher("/api/features");
+        const response = await fetcher("/api/features/");
         setFeatures(response.data);
       } catch (error) {
         setError(error);

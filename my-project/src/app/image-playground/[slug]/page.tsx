@@ -34,18 +34,22 @@ const featuresMock: Feature[] = [
   { x: 390, y: 400, name: "Pancakes", id: 117, activation: 0.2 },
 ];
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 function ImagePlayground() {
   const params = useParams();
   const id = params.slug;
 
-  const [originalFeatures, setOriginalFeatures] =
-    useState<Feature[]>(featuresMock);
-  const [learnedFeatures, setLearnedFeatures] =
-    useState<Feature[]>(originalFeatures);
+  const [originalFeatures, setOriginalFeatures] = useState<Feature[]>([]);
+  const [learnedFeatures, setLearnedFeatures] = useState<Feature[]>([]);
   const [modifiedFeatures, setModifiedFeatures] = useState<Feature[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [modifiedImageUrl, setModifiedImageUrl] = useState(originalUrl);
+  const [modifiedImageUrl, setModifiedImageUrl] = useState<string>("");
   const [featureSearchQuery, setFeatureSearchQuery] = useState("");
+  const [loadingOriginalImage, setLoadingOriginalImage] = useState(false);
+  const [loadingOriginalFeatures, setLoadingOriginalFeatures] = useState(true);
+  const [originalImage, setOriginalImage] = useState<any>(null);
+  const [error, setError] = useState<any>(null);
   const router = useRouter();
 
   const handleSliderChange = (id: number, newValue: number) => {
@@ -73,8 +77,8 @@ function ImagePlayground() {
   };
 
   const handleReset = () => {
-    // Set image url to original
-    setModifiedImageUrl(originalUrl);
+    // Set image url to empty
+    setModifiedImageUrl("");
     // Remove modified features
     setModifiedFeatures([]);
     // Reset learned features to original state
@@ -134,11 +138,45 @@ function ImagePlayground() {
         setModifiedImageUrl(newImageUrl);
       }
     };
-
-    updateImageUrl();
+    if (learnedFeatures.length > 0) {
+      updateImageUrl();
+    }
   }, [learnedFeatures, modifiedFeatures]);
 
-  useEffect(() => {}, [modifiedImageUrl]);
+  useEffect(() => {
+    const fetchOriginalImage = async () => {
+      setLoadingOriginalImage(true);
+      try {
+        const response = await fetcher(`/api/images/?id=${id}`);
+        setOriginalImage(response.data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoadingOriginalImage(false);
+      }
+    };
+
+    const fetchFeaturesById = async () => {
+      setLoadingOriginalFeatures(true);
+      try {
+        const response = await fetcher(`/api/features/?id=${id}`);
+        console.log(response.data);
+        setOriginalFeatures(response.data);
+        setLearnedFeatures(response.data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoadingOriginalFeatures(false);
+      }
+    };
+
+    if (!originalImage) {
+      fetchOriginalImage();
+    }
+    fetchFeaturesById();
+  }, []);
+
+  useEffect(() => {}, [modifiedImageUrl, originalFeatures]);
 
   return (
     <div className="h-screen bg-white">
@@ -150,115 +188,125 @@ function ImagePlayground() {
           <p className="text-gray-500">Image Playground.</p>
         </div>
       </div>
-      <div className="flex justify-between mb-8 px-[100px] h-full">
-        <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center h-full">
-          <div className="w-full flex items-center justify-center">
-            <img
-              src={modifiedImageUrl}
-              className="h-[400px] w-[400px] mb-6 rounded-3xl"
-            />
+      {originalImage && (
+        <div className="flex justify-between mb-8 px-[100px] h-full">
+          <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center h-full">
+            <div className="relative h-[360px] w-[360px] flex items-center justify-center mb-6">
+              <img
+                src={modifiedImageUrl ? modifiedImageUrl : originalImage.url}
+                className="h-[360px] w-[360px] rounded-lg border border-gray-200"
+              />
+            </div>
+            {/* Only show if not original image */}
+            <div className="cursor-pointer h-6" onClick={handleReset}>
+              {modifiedImageUrl && <p>reset to original</p>}
+            </div>
           </div>
-          <div className="cursor-pointer" onClick={handleReset}>
-            <p>reset to original</p>
-          </div>
-        </div>
-        <div className="w-1/2 pl-[50px] flex flex-col h-full">
-          {/* <div
-            className="flex flex-row cursor-pointer items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
-            onClick={() => console.log("adding feature")}>
-            <img src={baseUrl2} className="h-[44px] w-[44px] rounded-md mr-2" />
-            <p>
-              a pixel art character with square black glasses, a hotdog-shaped
-              head and a peachy-colored body on a warm background
+          <div className="w-1/2 pl-[50px] flex flex-col h-full">
+            <div
+              className="flex flex-row cursor-pointer items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
+              onClick={() => console.log("adding feature")}>
+              <img
+                src={originalImage.url}
+                className="h-[44px] w-[44px] rounded-md mr-2"
+              />
+              <p>
+                a pixel art character with square black glasses, a hotdog-shaped
+                head and a peachy-colored body on a warm background
+              </p>
+            </div>
+            <p className="mb-6 mt-6">
+              Learned Features: {learnedFeatures.length}
             </p>
-          </div> */}
-          <p className="mb-6 mt-6">
-            Learned Features: {learnedFeatures.length}
-          </p>
-          <div className="overflow-y-scroll h-1/2">
-            {learnedFeatures.map((feature) => {
-              const modifiedFeature = modifiedFeatures.find(
-                (mf) => mf.id === feature.id
-              );
-              const displayActivation = modifiedFeature
-                ? modifiedFeature.activation
-                : feature.activation;
-              return (
+            {learnedFeatures.length > 0 && (
+              <div className="overflow-y-scroll h-1/2">
+                {learnedFeatures.map((feature) => {
+                  const modifiedFeature = modifiedFeatures.find(
+                    (mf) => mf.id === feature.id
+                  );
+                  const displayActivation = modifiedFeature
+                    ? modifiedFeature.activation
+                    : feature.activation;
+                  return (
+                    <div
+                      key={feature.id}
+                      className="mb-4"
+                      onMouseEnter={() => setHoveredId(feature.id)}
+                      onMouseLeave={() => setHoveredId(null)}>
+                      <div className="flex flex-row items-center justify-between">
+                        <div>
+                          <div className="flex flex-row items-center space-x-2 mb-3">
+                            <img
+                              src={originalImage.url}
+                              className="h-[36px] w-[36px] rounded-md"
+                            />
+                            <p className="text-lg">#{feature.id}</p>
+                            <p className="text-lg font-medium">
+                              {feature.name}
+                            </p>
+                          </div>
+                          <div className="flex flex-row items-center">
+                            <p className="min-w-7 max-w-7 w-7">
+                              {formatActivation(displayActivation)}
+                            </p>
+                            <input
+                              type="range"
+                              min="0"
+                              max="40"
+                              step="1"
+                              value={displayActivation * 10}
+                              onChange={(e) =>
+                                handleSliderChange(
+                                  feature.id,
+                                  Number(e.target.value)
+                                )
+                              }
+                              className="h-2 bg-gray-200 rounded-lg appearance-none accent-orange-700 cursor-pointer ml-6 mr-3 w-[200px]"
+                            />
+                          </div>
+                        </div>
+                        {hoveredId === feature.id && (
+                          <button
+                            onClick={() => handleMoreInfo(feature.id)}
+                            className="transition-opacity duration-200 ml-4 underline text-orange-800">
+                            More Info
+                          </button>
+                        )}
+                      </div>
+                      <div className="bg-gray-200 h-[1px] my-6" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="h-1/2 overflow-y-scroll">
+              <p className="mb-6 mt-6">
+                Added Features: {modifiedFeatures.length}
+              </p>
+              {modifiedFeatures.map((feature) => (
                 <div
                   key={feature.id}
-                  className="mb-4"
-                  onMouseEnter={() => setHoveredId(feature.id)}
-                  onMouseLeave={() => setHoveredId(null)}>
-                  <div className="flex flex-row items-center justify-between">
-                    <div>
-                      <div className="flex flex-row items-center space-x-2 mb-3">
-                        <img
-                          src={originalUrl}
-                          className="h-[36px] w-[36px] rounded-md"
-                        />
-                        <p className="text-lg">#{feature.id}</p>
-                        <p className="text-lg font-medium">{feature.name}</p>
-                      </div>
-                      <div className="flex flex-row items-center">
-                        <p className="min-w-7 max-w-7 w-7">
-                          {formatActivation(displayActivation)}
-                        </p>
-                        <input
-                          type="range"
-                          min="0"
-                          max="40"
-                          step="1"
-                          value={displayActivation * 10}
-                          onChange={(e) =>
-                            handleSliderChange(
-                              feature.id,
-                              Number(e.target.value)
-                            )
-                          }
-                          className="h-2 bg-gray-200 rounded-lg appearance-none accent-orange-700 cursor-pointer ml-6 mr-3 w-[200px]"
-                        />
-                      </div>
-                    </div>
-                    {hoveredId === feature.id && (
-                      <button
-                        onClick={() => handleMoreInfo(feature.id)}
-                        className="transition-opacity duration-200 ml-4 underline text-orange-800">
-                        More Info
-                      </button>
-                    )}
+                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between">
+                  <div className="flex flex-row items-center">
+                    <img
+                      src={newUrl}
+                      className="h-[36px] w-[36px] rounded-md mr-2"
+                    />
+                    <p className="">{feature.name}</p>
                   </div>
-                  <div className="bg-gray-200 h-[1px] my-6" />
+                  <div className="flex flex-row items-center">
+                    <p>{feature.activation}</p>
+                    <XMarkIcon
+                      className="h-4 w-4 cursor-pointer ml-3"
+                      onClick={() => removeModifiedFeature(feature.id)}
+                    />
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-          <div className="h-1/2 overflow-y-scroll">
-            <p className="mb-6 mt-6">
-              Added Features: {modifiedFeatures.length}
-            </p>
-            {modifiedFeatures.map((feature) => (
-              <div
-                key={feature.id}
-                className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between">
-                <div className="flex flex-row items-center">
-                  <img
-                    src={newUrl}
-                    className="h-[36px] w-[36px] rounded-md mr-2"
-                  />
-                  <p className="">{feature.name}</p>
-                </div>
-                <div className="flex flex-row items-center">
-                  <p>{feature.activation}</p>
-                  <XMarkIcon
-                    className="h-4 w-4 cursor-pointer ml-3"
-                    onClick={() => removeModifiedFeature(feature.id)}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <input
         type="text"
         className="absolute px-4 py-3 bottom-4 left-1/2 transform -translate-x-1/2 w-1/3 border border-gray-300 rounded-md focus:ring-none focus:outline-none"

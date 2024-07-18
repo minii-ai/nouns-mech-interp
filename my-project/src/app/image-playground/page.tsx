@@ -3,126 +3,39 @@ import React, { useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowUpRightIcon } from "@heroicons/react/24/outline";
-// import { Rotate } from "tabler-icons-react";
 
-interface Feature {
-  x: number;
-  y: number;
-  id: number;
-  name: string;
-  activation: number;
-}
-
-const featuresMock: Feature[] = [
-  { x: 70, y: 80, name: "Burger", id: 101, activation: 0.2 },
-  { x: 90, y: 100, name: "Pizza", id: 102, activation: 0.2 },
-  { x: 110, y: 120, name: "Ice Cream", id: 103, activation: 0.2 },
-  { x: 130, y: 140, name: "Fries", id: 104, activation: 0.2 },
-  { x: 150, y: 160, name: "Taco", id: 105, activation: 0.2 },
-  { x: 170, y: 180, name: "Nachos", id: 106, activation: 0.2 },
-  { x: 190, y: 200, name: "Pasta", id: 107, activation: 0.2 },
-  { x: 210, y: 220, name: "Sushi", id: 108, activation: 0.2 },
-  { x: 230, y: 240, name: "Salad", id: 109, activation: 0.2 },
-  { x: 250, y: 260, name: "Sandwich", id: 110, activation: 0.2 },
-  { x: 270, y: 280, name: "Soup", id: 111, activation: 0.2 },
-  { x: 290, y: 300, name: "Steak", id: 112, activation: 0.2 },
-  { x: 310, y: 320, name: "Chicken", id: 113, activation: 0.2 },
-  { x: 330, y: 340, name: "Fish", id: 114, activation: 0.2 },
-  { x: 350, y: 360, name: "Eggs", id: 115, activation: 0.2 },
-  { x: 370, y: 380, name: "Waffles", id: 116, activation: 0.2 },
-  { x: 390, y: 400, name: "Pancakes", id: 117, activation: 0.2 },
-];
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function ImagePlaygroundHome() {
   const router = useRouter();
   const [hoverId, setHoverId] = useState<number | null>(null);
+  const [images, setImages] = useState<any[]>([]);
+  const [error, setError] = useState<any>(null);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   const handleSelectImage = (id: number) => {
     router.push(`/image-playground/${id}`);
   };
 
-  const imageUrls = [
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 101,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 102,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 103,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 104,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 105,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 106,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 107,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 108,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 109,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 110,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 111,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 112,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 113,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 114,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 115,
-    },
-    {
-      url: baseUrl,
-      text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
-      id: 116,
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoadingImages(true);
+      try {
+        const response = await fetcher("/api/images/");
+        setImages(response.data);
+      } catch (error) {
+        setError(error);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    // console.log("getting images");
+  }, [images]);
 
   return (
     <div className="min-h-screen bg-white pb-4">
@@ -133,7 +46,7 @@ function ImagePlaygroundHome() {
           </p>
           <p className="text-gray-500">Image Playground.</p>
         </div>
-        <div className="max-w-2xl mx-auto py-6 mt-[64px]">
+        <div className="max-w-2xl w-full mx-auto py-6 mt-[64px]">
           <h1 className="text-2xl font-medium text-gray-900">
             Explore Dataset
           </h1>
@@ -161,29 +74,31 @@ function ImagePlaygroundHome() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-1 mt-10 mx-4">
-        {imageUrls.map((image, index) => (
-          <div
-            key={index}
-            className="flex relative justify-center cursor-pointer"
-            onClick={() => handleSelectImage(image.id)}
-            onMouseEnter={() => setHoverId(image.id)}
-            onMouseLeave={() => setHoverId(null)}>
-            <img
-              src={image.url}
-              alt={`Image ${index + 1}`}
-              className="w-[20wh] h-[20wh] max-w-[20wh] object-cover border border-gray-100 rounded-md"
-            />
-            {hoverId === image.id && (
-              <div className="absolute inset-0 bg-white bg-opacity-50 backdrop-filter backdrop-blur-lg flex items-center justify-center rounded-md px-4 text-center border border-gray-100">
-                <p className="text-gray-700 font-medium text-sm">
-                  {image.text}
-                </p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+      {images.length > 0 && (
+        <div className="grid grid-cols-5 gap-1 mt-10 mx-4">
+          {images.map((image, index) => (
+            <div
+              key={index}
+              className="flex relative justify-center cursor-pointer"
+              onClick={() => handleSelectImage(image.id)}
+              onMouseEnter={() => setHoverId(image.id)}
+              onMouseLeave={() => setHoverId(null)}>
+              <img
+                src={image.url}
+                alt={`Image ${index + 1}`}
+                className="w-[20wh] h-[20wh] max-w-[20wh] object-cover border border-gray-100 rounded-md"
+              />
+              {hoverId === image.id && (
+                <div className="absolute inset-0 bg-white bg-opacity-50 backdrop-filter backdrop-blur-lg flex items-center justify-center rounded-md px-4 text-center border border-gray-100">
+                  <p className="text-gray-700 font-medium text-sm">
+                    {image.text}
+                  </p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
