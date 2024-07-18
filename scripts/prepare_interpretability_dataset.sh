@@ -1,10 +1,11 @@
 #!/bin/bash
 
 python3 prepare_interpretability_dataset.py \
-    --sae_checkpoint="../checkpoints/sae_experiments/lr=5.0e-04_l1=5.0e-03" \
-    --vae_checkpoint="../checkpoints/vae" \
+    --sae_checkpoint="../checkpoints/sae_experiments_high_l1/lr=1.0e-04_l1=1.0e-02" \
+    --vae_checkpoint="../weights/vae" \
     --output_dir="../data/interp_dataset_new" \
-    --decoded_features_dir="../data/sae_decoded_features_new" \
-    --vae_embeddings_path="../vae_embeddings.npy" \
-    --k=9 \
+    --decoded_features_dir="../data/sae_decoded_features_1.0e-03" \
+    --vae_embeddings_path="../data/vae_embeddings.npy" \
+    --k=16\
+    # --sae_checkpoint="../checkpoints/sae_experiments/lr=5.0e-04_l1=5.0e-03" \
     # --sae_checkpoint="../checkpoints/sae_experiments2/lr=5.0e-04_l1=1.0e-03" \
