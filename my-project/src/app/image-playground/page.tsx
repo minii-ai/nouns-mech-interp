@@ -35,80 +35,97 @@ const featuresMock: Feature[] = [
 
 function ImagePlaygroundHome() {
   const router = useRouter();
+  const [hoverId, setHoverId] = useState<number | null>(null);
 
   const handleSelectImage = (id: number) => {
-    router.push(`/image_playground/${id}`);
+    router.push(`/image-playground/${id}`);
   };
 
   const imageUrls = [
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 101,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 102,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 103,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 104,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 105,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 106,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 107,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 108,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 109,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 110,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 111,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 112,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 113,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 114,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 115,
     },
     {
       url: baseUrl,
       text: "a pixel art character with square dark green glasses, a yeti-shaped head and a redpinkish-colored body on a cool background",
+      id: 116,
     },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-4">
       <div className="w-full flex flex-col items-center justify-center">
         <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
           <p className="cursor-pointer" onClick={() => router.push("/")}>
@@ -121,13 +138,10 @@ function ImagePlaygroundHome() {
             Explore Dataset
           </h1>
           <p className="text-sm mt-5 text-gray-500">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
+            Trained on almost 50,000 pixel art characters.{" "}
+            <span className="font-semibold">
+              Select an image to edit its features.
+            </span>
           </p>
           <button
             className="flex flex-row items-center mt-5 px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
@@ -147,14 +161,26 @@ function ImagePlaygroundHome() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-5 gap-4 mt-10 mx-auto">
+      <div className="grid grid-cols-5 gap-1 mt-10 mx-4">
         {imageUrls.map((image, index) => (
-          <div key={index} className="flex justify-center cursor-pointer">
+          <div
+            key={index}
+            className="flex relative justify-center cursor-pointer"
+            onClick={() => handleSelectImage(image.id)}
+            onMouseEnter={() => setHoverId(image.id)}
+            onMouseLeave={() => setHoverId(null)}>
             <img
               src={image.url}
               alt={`Image ${index + 1}`}
-              className="w-[20vw] h-[20vw] object-cover border rounded-lg"
+              className="w-[20wh] h-[20wh] max-w-[20wh] object-cover border border-gray-100 rounded-md"
             />
+            {hoverId === image.id && (
+              <div className="absolute inset-0 bg-white bg-opacity-50 backdrop-filter backdrop-blur-lg flex items-center justify-center rounded-md px-4 text-center border border-gray-100">
+                <p className="text-gray-700 font-medium text-sm">
+                  {image.text}
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
