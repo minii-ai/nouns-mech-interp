@@ -5,32 +5,43 @@ from fastapi import FastAPI
 app = FastAPI()
 
 
-@app.get("/features/")
+@app.get("/features/") # => Database
 def get_all_features():
     all_features = featuresDB.get_all()
     return all_features
 
-@app.get("/features/{feature_id}")
+@app.get("/features/{feature_id}") # => Database
 def get_feature(feature_id: int):
     feature = featuresDB.get(feature_id)
     return feature
 
-@app.post('/adjust_feature/')
-def adjust_feature(image_id: int, feature_id: int, activation:int):
-    # for image_features in FEATURE_IMAGE_MOCK_DATA.values():
-    #     if image_features['image_id'] == image_id and image_features['feature_id'] == feature_id:
-    #         image_features['activation'] = activation
-    #         break
-    # return IMAGE_MOCK_DATA[image_id]
-    pass
+@app.get("/features/{feature_id}/image") # => On Demand
+def get_feature(feature_id: int):
+    feature = featuresDB.get(feature_id)
+    return feature
     
-@app.get("images/")
+@app.get("images/") # => Database
 def get_all_images():
 #     return IMAGE_MOCK_DATA.values()
     pass
 
-@app.get("/images/{image_id}")
+@app.get("/images/{image_id}") # => Database
 def get_image(image_id: int):
     return imagesDB.get(image_id)
+
+@app.post("/images/{image_id}/features")
+def get_image(image_id: int):
+    '''
+    Modifies Image based on explicit Feature Adjustments
+    '''
+    return imagesDB.get(image_id)
+
+@app.post("/images/{image_id}/text")
+def get_image(image_id: int):
+    '''
+    Modifies Image based on Natural Language Text
+    '''
+    return imagesDB.get(image_id)
+
 
 

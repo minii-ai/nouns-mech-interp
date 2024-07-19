@@ -2,10 +2,13 @@ from client import supabase_client
 from utils import serialize_non_json_values, deserialize_json_values
 import json
 import numpy as np
+import pandas as pd
+import sys
 
 class NounsFeatureTable:
     def __init__(self):
-        self.table = supabase_client.table("NounsFeature")        
+        self.table = supabase_client.table("NounsFeature")     
+        self.descriptions = pd.read_csv('../data/descriptions.csv') 
 
     def isEmpty(self):
         response = self.table.select('*').limit(1).execute()
@@ -32,7 +35,8 @@ class NounsFeatureTable:
             json_features = f.read()
         features = json.loads(json_features)['features']
         for feature in features:
-            feature["activations"] = self.create_denisity_histogram(feature['activations'])
+            feature['description'] = self._get_description_from_csv(feature['id'])
+            feature["activations"] = self._create_denisity_histogram(feature['activations'])
             featuresDB.add(feature)
             
     def _create_denisity_histogram(self, activations, num_buckets = 20):
@@ -55,11 +59,25 @@ class NounsFeatureTable:
             elif bucket_index >= num_buckets:
                 buckets[-1]['count'] += 1
         return buckets
+    
+    def _get_description_from_csv(self, feature_id):
+        row = self.descriptions[self.descriptions['Feature Index'] == feature_id]
+        dead_feature = row['Dead (T/F)'].to_list()[0]
+        if dead_feature: return None
+        return row['Explanation'].to_list()[0]
+    
+    def _get_is_dead_status_from_csv(self, feature_id):
+        row = self.descriptions[self.descriptions['Feature Index'] == feature_id]
+        dead_feature = row['Dead (T/F)'].to_list()[0]
+        return dead_feature == 1
+
 
 featuresDB = NounsFeatureTable()
 
 
 if __name__ == "__main__":
     FEATURES_DIR = '../data/features.json'
-    # if featuresDB.isEmpty(): featuresDB.add_json_file(FEATURES_DIR)
-    print(featuresDB.get_all())
+    if featuresDB.isEmpty(): featuresDB._add_json_file(FEATURES_DIR)
+
+    #[_, feature_id] = sys.argv
+    # print(featuresDB._get_description_from_csv(int(feature_id)))
