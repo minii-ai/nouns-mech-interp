@@ -1,5 +1,5 @@
-from client import supabase_client
-from features_db import featuresDB
+from .client import supabase_client
+from .features_db import featuresDB
 import base64
 
 class ReconstructedImageFeatureBucket:
@@ -35,14 +35,14 @@ class ReconstructedImageFeatureBucket:
             response =  self.bucket.upload(destination_path, file)
         return response
 
-image_features_db = ReconstructedImageFeatureBucket()
+imageFeaturesBucket = ReconstructedImageFeatureBucket()
 
 
 def _upload_feature_image(feature_id):
     FEATURE_IMAGES_DIR= '../data/interp_dataset/'
     source = f'{FEATURE_IMAGES_DIR}{feature_id}/feature.png'
     destination = f'./{feature_id}.png'
-    image_features_db.upload(source, destination)
+    imageFeaturesBucket.upload(source, destination)
     print(f'Feature {feature_id} was successfully uploaded')
 
 def _upload_all_feature_images():
@@ -53,4 +53,5 @@ def _upload_all_feature_images():
 
 if __name__ == '__main__':
     # _upload_all_feature_images()
-    print(image_features_db.get(1))
+    # print(imageFeaturesBucket.get(1))
+    pass

@@ -1,8 +1,7 @@
-from client import supabase_client
+from .client import supabase_client
 from datasets import load_dataset
 import base64
 from io import BytesIO
-from PIL import Image
 
 
 class NounsImageTable:
@@ -14,13 +13,15 @@ class NounsImageTable:
         return self.supabase_table.insert(nouns_image).execute()
     
     def get(self, nouns_image_id):
-        combined_data = {"id": nouns_image_id}
-        primary_data = self.hugging_face_db[nouns_image_id]
-        combined_data['image'] = self._pil_to_base64(primary_data['image'])
-        combined_data['text'] = primary_data['text']
-        # secondary_data = self.supabase_table.select("*").eq("id", nouns_image_id).execute().data[0]
-        # combined_data['non_zero_activations'] = secondary_data['non_zero_activations']
-        return combined_data
+        try:
+            combined_data = {"id": nouns_image_id}
+            primary_data = self.hugging_face_db[nouns_image_id]
+            combined_data['image'] = self._pil_to_base64(primary_data['image'])
+            combined_data['text'] = primary_data['text']
+            # secondary_data = self.supabase_table.select("*").eq("id", nouns_image_id).execute().data[0]
+            # combined_data['non_zero_activations'] = secondary_data['non_zero_activations']
+            return combined_data
+        except: return None
     
     def _pil_to_base64(self, pil_image):
         buffer = BytesIO()
@@ -35,4 +36,5 @@ class NounsImageTable:
 imagesDB = NounsImageTable()
 
 if __name__ == "__main__":
-    print(imagesDB.get(0))
+    # print(imagesDB.get(0))
+    pass
