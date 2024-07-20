@@ -45,7 +45,8 @@ class SAE(nn.Module):
         # initialization
         nn.init.kaiming_uniform_(self.W_e, mode="fan_in", nonlinearity="relu")
         nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
-        self.set_features_to_unit_norm()
+
+        self.W_d.data[:] = self.get_unit_features()
 
     @staticmethod
     def load_from_checkpoint(config_path: str, weights_path: str):
@@ -76,14 +77,32 @@ class SAE(nn.Module):
         return self.W_d.data
 
     @torch.no_grad()
-    def set_features_to_unit_norm(self):
-        """
-        Set the features to have unit norm
-        """
-        mag = self.W_d.pow(2).sum(dim=1, keepdim=True).sqrt()
-        eps = torch.finfo(mag.dtype).eps
+    def set_preencoder_bias(self, bias: torch.Tensor):
+        self.b_d.data = bias
 
-        self.W_d.data /= mag + eps
+    def get_unit_features(self):
+        """
+        Get the features of the sparse autoencoder with unit norm.
+        """
+        mag = self.W_d.norm(dim=1, keepdim=True)  # [N, 1]
+        eps = torch.finfo(mag.dtype).eps
+        norm_W_d = self.W_d / (mag + eps)  # [N, D]
+
+        return norm_W_d
+
+    @torch.no_grad()
+    def set_features_and_grad_to_unit_norm(self):
+        """
+        Set the features to have unit norm and remove parallel component of the gradient.
+        """
+        # https://github.com/neelnanda-io/1L-Sparse-Autoencoder/blob/main/utils.py#L135
+        norm_W_d = self.get_unit_features()
+
+        # project gradient onto unit features [N, D]
+        W_d_grad_proj = (self.W_d.grad * norm_W_d).sum(dim=-1, keepdim=True) * norm_W_d
+
+        self.W_d.grad -= W_d_grad_proj  # remove parallel component of the gradient
+        self.W_d.data = norm_W_d
 
     def encode(self, x: torch.Tensor):
         x_bar = x - self.b_d
@@ -92,13 +111,7 @@ class SAE(nn.Module):
         return f
 
     def decode(self, x: torch.Tensor):
-        if self.training:
-            mag = self.W_d.pow(2).sum(dim=1, keepdim=True).sqrt()
-            eps = torch.finfo(mag.dtype).eps
-            x = x @ (self.W_d / (mag + eps)) + self.b_d
-        else:
-            x = x @ self.W_d + self.b_d
-
+        x = x @ self.W_d + self.b_d
         return x
 
     def forward(self, x: torch.Tensor) -> SAEOutput:
@@ -109,6 +122,7 @@ class SAE(nn.Module):
 
     def loss(self, x: torch.Tensor, lmbda: float) -> SAELossOutput:
         output = self.forward(x)
+
         recon_loss = F.mse_loss(output.recon, x)
         l1_loss = lmbda * output.latent.abs().sum(dim=1).mean()
         loss = recon_loss + l1_loss

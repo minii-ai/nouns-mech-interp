@@ -7,10 +7,8 @@ from torch.utils.data import DataLoader
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
-
-from vae_interp.dataset import NpyDataset
-from vae_interp.sae import SAE
-from vae_interp.trainer import SAETrainConfig, SAETrainer
+from dataset import NpyDataset
+from models import SAE, VAE, SAETrainConfig, SAETrainer
 
 
 def parse_args():
@@ -45,10 +43,21 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--vae_checkpoint", type=str, required=True, help="Path to vae checkpoint"
+    )
+
+    parser.add_argument(
         "--vae_embeddings_path",
         type=str,
         required=True,
         help="Path to vae embeddings .npy file",
+    )
+
+    parser.add_argument(
+        "--latent_shape",
+        type=str,
+        required=True,
+        help="VAE latent shape",
     )
 
     # Save and logging parameters
@@ -73,10 +82,14 @@ def parse_args():
         help="Device to run the training on (default: cuda if available, else cpu)",
     )
 
+    parser.add_argument("--seed", type=int, default=0, help="Random seed")
+
     return parser.parse_args()
 
 
 def main(args):
+    torch.manual_seed(args.seed)
+
     dataset = NpyDataset(args.vae_embeddings_path)
     dataloader = DataLoader(
         dataset,
@@ -85,6 +98,12 @@ def main(args):
         pin_memory=True,
         num_workers=4,
     )
+
+    # load vae
+    vae = VAE.load_from_dir(args.vae_checkpoint)
+    vae.eval()
+
+    latent_shape = [int(x) for x in args.latent_shape.split(",")]
 
     sae = SAE(
         in_features=args.in_features,
@@ -99,6 +118,8 @@ def main(args):
     )
     trainer = SAETrainer(
         model=sae,
+        vae=vae,
+        latent_shape=latent_shape,
         dataloader=dataloader,
         config=train_config,
         save_dir=args.save_dir,
