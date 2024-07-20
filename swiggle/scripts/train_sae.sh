@@ -6,7 +6,7 @@ python train_sae.py \
     --lr=1e-4 \
     --iterations=250000 \
     --batch_size=4096 \
-    --lambda_l1=3e-4 \
+    --lambda_l1=1e-3 \
     --save_dir="../checkpoints/test2" \
     --checkpoint_every=500 \
     --vae_embeddings_path="../data/vae_embeddings.npy" \

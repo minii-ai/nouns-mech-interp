@@ -46,10 +46,21 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--vae_checkpoint", type=str, required=True, help="Path to vae checkpoint"
+    )
+
+    parser.add_argument(
         "--vae_embeddings_path",
         type=str,
         required=True,
         help="Path to vae embeddings .npy file",
+    )
+
+    parser.add_argument(
+        "--latent_shape",
+        type=str,
+        required=True,
+        help="VAE latent shape",
     )
 
     parser.add_argument(
@@ -81,6 +92,8 @@ def parse_args():
         help="Device to run the training on (default: cuda if available, else cpu)",
     )
 
+    parser.add_argument("--seed", type=int, default=0, help="Random seed")
+
     return parser.parse_args()
 
 
@@ -95,6 +108,9 @@ class ExperimentConfig:
     save_dir: str
     checkpoint_every: int
     vae_embeddings_path: str
+    vae_checkpoint: str
+    latent_shape: str
+    seed: int
 
 
 async def experiment_worker(queue: asyncio.Queue):
@@ -129,7 +145,10 @@ async def run_experiment(config: ExperimentConfig):
             "lambda_l1": config.l1_weight,
             "save_dir": config.save_dir,
             "vae_embeddings_path": config.vae_embeddings_path,
+            "vae_checkpoint": config.vae_checkpoint,
             "checkpoint_every": config.checkpoint_every,
+            "latent_shape": config.latent_shape,
+            "seed": config.seed,
         },
     )
 
@@ -167,7 +186,10 @@ async def main(args):
             iterations=args.iterations,
             save_dir=experiment_dir,
             vae_embeddings_path=args.vae_embeddings_path,
+            vae_checkpoint=args.vae_checkpoint,
             checkpoint_every=args.checkpoint_every,
+            latent_shape=args.latent_shape,
+            seed=args.seed,
         )
         await queue.put(experiment_config)
 
