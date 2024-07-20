@@ -6,6 +6,8 @@ from swiggle.dataset import load_nouns_dataset
 from swiggle.models import SAE, VAE, FeaturesControl
 
 from .database import create_supabase_client
+from .database.feature_images_bucket import ReconstructedImageFeatureBucket
+from .database.features_db import NounsFeatureTable
 from .features import FeaturesService
 
 load_dotenv()
@@ -15,7 +17,11 @@ url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_KEY")
 supabase_client = create_supabase_client(url, key)
 
+# creat features images bucket
+image_feature_bucket = ReconstructedImageFeatureBucket(supabase_client)
+
 # create features db
+features_db = NounsFeatureTable(supabase_client)
 
 # load datase
 nouns_dataset = load_nouns_dataset(image_size=64, normalize=True)

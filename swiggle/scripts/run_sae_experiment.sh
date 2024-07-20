@@ -8,7 +8,7 @@ python run_sae_experiment.py \
     --lambda_l1=8e-3,4e-3,1e-3,7e-4 \
     --batch_size=4096 \
     --save_dir="../checkpoints/sae_experiments_improved" \
-    --checkpoint_every=10000 \
+    --checkpoint_every=5000 \
     --vae_embeddings_path="../data/vae_embeddings.npy" \
     --vae_checkpoint=../weights/vae \
     --concurrent_experiments=6 \

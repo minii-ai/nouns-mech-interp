@@ -5,8 +5,9 @@ from typing import Union
 from fastapi import FastAPI, HTTPException, Request, Response
 from PIL import Image
 
-from .database import featuresDB, imageFeaturesBucket, imagesDB
-from .services import features_service, nouns_dataset
+# from .database import featuresDB, imageFeaturesBucket, imagesDB
+from .database import imagesDB
+from .services import features_db, features_service, image_feature_bucket, nouns_dataset
 
 app = FastAPI()
 
@@ -23,7 +24,7 @@ def get_all_features():
     """
     Gets id, description
     """
-    all_features = featuresDB.get_all(deserialize=False)
+    all_features = features_db.get_all(deserialize=False)
     return all_features
 
 
@@ -34,7 +35,7 @@ def get_feature(feature_id: int):
     for a feature with id `feature_id`
     """
 
-    feature = featuresDB.get(feature_id)
+    feature = features_db.get(feature_id)
     return feature
 
 
@@ -43,7 +44,7 @@ def get_feature(feature_id: int):
     """
     Returns the image as base64 string (use CDN for this?)
     """
-    return imageFeaturesBucket.get(feature_id)
+    return image_feature_bucket.get(feature_id)
 
 
 @app.get("/images/{image_id}")  # => Database

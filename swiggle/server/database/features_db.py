@@ -2,13 +2,15 @@ import json
 
 import numpy as np
 import pandas as pd
+from supabase import Client
 
 from .client import supabase_client
 from .utils import deserialize_json_values, serialize_non_json_values
 
 
 class NounsFeatureTable:
-    def __init__(self):
+    def __init__(self, supabase_client: Client):
+        self.supabase_client = supabase_client
         self.table = supabase_client.table("NounsFeature")
 
         # NOTE: careful with with, user of repo might not have this file
@@ -105,12 +107,12 @@ class NounsFeatureTable:
         return dead_feature == 1
 
 
-featuresDB = NounsFeatureTable()
+# featuresDB = NounsFeatureTable()
 
 if __name__ == "__main__":
-    FEATURES_DIR = "../data/features.json"
-    if featuresDB.isEmpty():
-        featuresDB._add_json_file(FEATURES_DIR)
+    # FEATURES_DIR = "../data/features.json"
+    # if featuresDB.isEmpty():
+    #     featuresDB._add_json_file(FEATURES_DIR)
 
     # [_, feature_id] = sys.argv
     # print(featuresDB._get_description_from_csv(int(feature_id)))
