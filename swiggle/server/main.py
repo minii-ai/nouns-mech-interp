@@ -1,12 +1,21 @@
+import io
 import json
 from typing import Union
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response
+from PIL import Image
 
 from .database import featuresDB, imageFeaturesBucket, imagesDB
 from .services import features_service, nouns_dataset
 
 app = FastAPI()
+
+
+def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format=format)
+    img_byte_arr.seek(0)
+    return img_byte_arr.getvalue()
 
 
 @app.get("/features/")  # => Database
@@ -55,12 +64,34 @@ async def get_image_features(image_id: int):
     return {"image_id": image_id, "features": features}
 
 
-@app.post("/images/{image_id}/features")  # => On Demand
-def get_image(image_id: int):
+@app.post(
+    "/images/{image_id}/features",
+    responses={200: {"content": {"image/png": {}}}},
+    response_class=Response,
+)  # => On Demand
+async def get_image(image_id: int, request: Request):
     """
-    Modifies Image based on explicit Feature Adjustments
+    Modifies image given new features
     """
-    # TODO: Implement
+    valid_image_id = 0 <= image_id < len(nouns_dataset)
+    if not valid_image_id:
+        raise HTTPException(status_code=400, detail=f"image_id {image_id} not found")
+
+    body = await request.json()
+    features = body["features"]
+    features_dict = {}
+
+    for feature in features:
+        feature_id = int(feature["feature_id"])
+        activation = feature["activation"]
+        features_dict[feature_id] = activation
+
+    modified_image = features_service.modify_image(image_id, features_dict)
+    modified_image_bytes = pil_image_to_bytes(modified_image)
+
+    return Response(
+        content=modified_image_bytes, media_type="image/png", status_code=200
+    )
 
 
 @app.post("/images/{image_id}/text")  # => On Demand

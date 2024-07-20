@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from swiggle.dataset import load_nouns_dataset
-from swiggle.models import SAE, VAE
+from swiggle.models import SAE, VAE, FeaturesControl
 
 from .database import create_supabase_client
 from .features import FeaturesService
@@ -35,4 +35,7 @@ vae = VAE.load_from_checkpoint(vae_config_path, vae_weights_path)
 
 
 # init features service
-features_service = FeaturesService(dataset=nouns_dataset, vae=vae, sae=sae)
+features_control = FeaturesControl(vae=vae, sae=sae, latent_shape=(4, 4, 4))
+features_service = FeaturesService(
+    dataset=nouns_dataset, features_control=features_control
+)
