@@ -1,0 +1,11 @@
+###
+GET http://127.0.0.1:8000/features
+
+###
+GET http://127.0.0.1:8000/features/10
+
+###
+GET http://127.0.0.1:8000/features/0/image
+###
+
+GET http://127.0.0.1:8000/images/0/features
