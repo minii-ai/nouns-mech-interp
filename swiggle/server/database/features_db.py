@@ -10,6 +10,9 @@ from .utils import deserialize_json_values, serialize_non_json_values
 class NounsFeatureTable:
     def __init__(self):
         self.table = supabase_client.table("NounsFeature")
+
+        # NOTE: careful with with, user of repo might not have this file
+        # ideally all the operations on this file should be done in a seperate file ie. script
         # self.descriptions = pd.read_csv("./data/descriptions.csv")
 
     def isEmpty(self):

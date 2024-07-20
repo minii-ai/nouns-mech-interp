@@ -1,9 +1,21 @@
 import os
 
+from dotenv import load_dotenv
+
 from swiggle.dataset import load_nouns_dataset
 from swiggle.models import SAE, VAE
 
+from .database import create_supabase_client
 from .features import FeaturesService
+
+load_dotenv()
+
+# load supabase client
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
+supabase_client = create_supabase_client(url, key)
+
+# create features db
 
 # load datase
 nouns_dataset = load_nouns_dataset(image_size=64, normalize=True)
