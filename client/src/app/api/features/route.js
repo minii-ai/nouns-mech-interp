@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 
 export const GET = async (req) => {
   try {
+    console.log(req);
+    const urlParams = new URLSearchParams(req.url.split('?')[1]);
+    console.log(urlParams);
     const features = [
       { x: 70, y: 80, name: "Burger", id: 101 },
       { x: 90, y: 100, name: "Pizza", id: 102 },
@@ -21,8 +24,17 @@ export const GET = async (req) => {
       { x: 370, y: 380, name: "Waffles", id: 116 },
       { x: 390, y: 400, name: "Pancakes", id: 117 },
     ];
+    // Get feature by id
+    if (urlParams.has('id')) {
+      const id = parseInt(urlParams.get('id'));
+      const feature = [{ x: 70, y: 80, name: "Burger", id: 101, activation: 0.2 }]
+      return NextResponse.json({ ok: true, data: feature });
+    } 
+    // Get all features
+    else {
+      return NextResponse.json({ ok: true, data: features });
+    }
 
-    return NextResponse.json({ ok: true, data: features });
   } catch (error) {
     console.error('Error getting features:', error);
     return NextResponse.json({ status: 500, message: 'Internal Server Error' });

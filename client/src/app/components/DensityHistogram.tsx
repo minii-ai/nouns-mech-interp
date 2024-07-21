@@ -82,7 +82,7 @@ const DensityHistogram: React.FC<DensityHistogramProps> = ({ data }) => {
       .attr("y", (d) => yScale(d.count))
       .attr("width", xScale.bandwidth())
       .attr("height", (d) => height - yScale(d.count))
-      .attr("fill", "brown");
+      .attr("fill", "#eaeaea");
   }, [data]);
 
   return <svg ref={svgRef}></svg>;

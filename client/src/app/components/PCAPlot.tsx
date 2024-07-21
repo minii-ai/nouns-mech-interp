@@ -124,9 +124,15 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           name: d.name,
           visible: true,
         });
+        if (onSelect) {
+          onSelect(d.id);
+        }
       })
       .on("mousemove", (event, d) => {
         const [x, y] = d3.pointer(event);
+        if (onSelect) {
+          onSelect(d.id);
+        }
         setTooltip({
           x: xScale(d.x),
           y: yScale(d.y),
