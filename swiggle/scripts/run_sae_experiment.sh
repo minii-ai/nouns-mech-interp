@@ -3,7 +3,7 @@
 python run_sae_experiment.py \
     --in_features=64 \
     --expansion_factor=16 \
-    --lr=1e-3,5e-3,1e-2 \
+    --lr=1e-3,2e-3,3e-3 \
     --iterations=1000000 \
     --lambda_l1=1e-2,8e-3,6e-3,4e-3 \
     --batch_size=8192 \
