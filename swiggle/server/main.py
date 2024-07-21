@@ -127,10 +127,26 @@ async def get_image(image_id: int, request: Request):
         content=modified_image_bytes, media_type="image/png", status_code=200
     )
 
-
-@app.post("/images/{image_id}/text")  # => On Demand
-def get_image(image_id: int):
+@app.post(
+    "/api/images/{image_id}/text",
+    responses={200: {"content": {"image/png": {}}}},
+    response_class=Response,
+)
+async def get_image(image_id: int, request:Request):
     """
     Modifies Image based on Natural Language Text
     """
-    # TODO: Implement
+    body = await request.json()
+    text = body["text"]
+    feature_ids = features_db.get_top_k_similar(text)
+
+    features_dict = {}
+    for feature_id in feature_ids:
+        features_dict[feature_id] = 2
+
+    modified_image = features_service.modify_image(image_id, features_dict)
+    modified_image_bytes = pil_image_to_bytes(modified_image)
+    return Response(
+        content=modified_image_bytes, media_type="image/png", status_code=200
+    )
+    

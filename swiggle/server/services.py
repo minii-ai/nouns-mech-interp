@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 from swiggle.dataset import load_nouns_dataset
-from swiggle.models import SAE, VAE, FeaturesControl
+from swiggle.models import SAE, VAE, FeaturesControl, TextEmbedder
 
 from .database import create_supabase_client
 from .database.feature_images_bucket import ReconstructedImageFeatureBucket
@@ -23,6 +23,10 @@ image_feature_bucket = ReconstructedImageFeatureBucket(supabase_client)
 # create features db
 features_db = NounsFeatureTable(supabase_client)
 
+# load textEmbedder
+text_embedder = TextEmbedder()
+
+
 # load datase
 nouns_dataset = load_nouns_dataset(image_size=64, normalize=True)
 
@@ -31,7 +35,6 @@ sae_checkpoint = "../weights/sae"
 sae_config_path = os.path.join(sae_checkpoint, "config.json")
 sae_weights_path = os.path.join(sae_checkpoint, "sae.pth")
 sae = SAE.load_from_checkpoint(sae_config_path, sae_weights_path)
-
 
 # load vae
 vae_checkpoint = "../weights/vae"

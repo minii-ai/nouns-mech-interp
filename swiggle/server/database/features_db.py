@@ -1,18 +1,33 @@
 import json
+import ast
 
 import numpy as np
 import pandas as pd
 from supabase import Client
+from client import supabase_client
 
-from .utils import deserialize_json_values, serialize_non_json_values
+from scipy.spatial.distance import cosine
+
+from utils import deserialize_json_values, serialize_non_json_values
+
+from sentence_transformers import SentenceTransformer
+
+class TextEmbedder:
+    def __init__(self):
+        self.model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+    def encode(self, text: str):
+        return self.model.encode(text).tolist()
+    
 
 
 class NounsFeatureTable:
     def __init__(self, supabase_client: Client):
         self.supabase_client = supabase_client
         self.table = supabase_client.table("NounsFeature")
+        self.embedder = TextEmbedder()
 
-        # NOTE: careful with with, user of repo might not have this file
+        # NOTE: careful with user of repo might not have this file
         # ideally all the operations on this file should be done in a seperate file ie. script
         # self.descriptions = pd.read_csv("./data/descriptions.csv")
 
@@ -21,49 +36,40 @@ class NounsFeatureTable:
         return len(response.data) == 0
 
     def add(self, nouns_feature, serialize=True):
-        if self._get_is_dead_status_from_csv(nouns_feature["id"]):
-            return None
         nouns_feature = (
             serialize_non_json_values(nouns_feature) if serialize else nouns_feature
         )
+        if nouns_feature['description']: # embed description into vector
+            description_embedding = self.embedder.encode('description')
+            result['description_embedding'] = description_embedding
         result = self.table.insert(nouns_feature).execute()
         print(f'Feature {nouns_feature["id"]} was successfully added')
         return result
+    
 
-    def get(self, nouns_feature_id):
-        features = (
-            self.table.select(
-                "id",
-                "description",
-                "top_k_images",
-                "similar_features",
-                "activations",
-                "activation_density",
-            )
-            .eq("id", nouns_feature_id)
-            .execute()
-            .data
-        )
-
-        exists = len(features) > 0
-
-        if not exists:
+    def get(self, feature_id, columns = '*'):
+        try:
+            features = (self.table.select(columns).eq("id", feature_id,).execute().data)
+            feature_exists = len(features) > 0; 
+            if not feature_exists: return None
+            result = deserialize_json_values(features[0])
+            return result
+        except:
             return None
-
-        result = deserialize_json_values(features[0])
-        return result
-
-    # def get(self, nouns_feature_id, deserialize=True):
-    #     try:
-    #         if self._get_is_dead_status_from_csv(nouns_feature_id):
-    #             return None
-    #         feature = (
-    #             self.table.select("*").eq("id", nouns_feature_id).execute().data[0]
-    #         )
-    #         result = deserialize_json_values(feature) if deserialize else feature
-    #         return result
-    #     except:
-    #         return None
+    
+    def get_top_k_similar(self, text: str, k: int = 5):
+        query_embedding = self.embedder.encode(text)
+        response = self.table.select("id, description_embedding").execute()
+        embeddings = response.data
+        similarities = []
+        for item in embeddings:
+            if item["description_embedding"] is not None:
+                description_embedding = ast.literal_eval(item['description_embedding'])
+                similarity = 1 - self._cosine_similarity(query_embedding, description_embedding)
+                similarities.append((item["id"], similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        top_k = similarities[:k]
+        return top_k
 
     def get_all(self):
         features = self.table.select("id", "description", "pca").limit(2).execute().data
@@ -81,7 +87,7 @@ class NounsFeatureTable:
             feature["activations"] = self._create_denisity_histogram(
                 feature["activations"]
             )
-            featuresDB.add(feature)
+            self.add(feature)
 
     def _create_denisity_histogram(self, activations, num_buckets=20):
         mean = np.mean(list(activations.values()))
@@ -120,16 +126,20 @@ class NounsFeatureTable:
         row = self.descriptions[self.descriptions["Feature Index"] == feature_id]
         dead_feature = row["Dead (T/F)"].to_list()[0]
         return dead_feature == 1
+    
+    def _cosine_similarity(self, vec1, vec2):
+        vec1 = np.array(vec1, dtype=float)
+        vec2 = np.array(vec2, dtype=float)
+        
+        dot_product = np.dot(vec1, vec2)
+        norm_vec1 = np.linalg.norm(vec1)
+        norm_vec2 = np.linalg.norm(vec2)
+        
+        if norm_vec1 == 0 or norm_vec2 == 0:
+            return 0.0
+        
+        return dot_product / (norm_vec1 * norm_vec2)
 
-
-# featuresDB = NounsFeatureTable()
 
 if __name__ == "__main__":
-    # FEATURES_DIR = "../data/features.json"
-    # if featuresDB.isEmpty():
-    #     featuresDB._add_json_file(FEATURES_DIR)
-
-    # [_, feature_id] = sys.argv
-    # print(featuresDB._get_description_from_csv(int(feature_id)))
-
-    pass
+     print(NounsFeatureTable(supabase_client).get_top_k_similar('Hotdog'))
