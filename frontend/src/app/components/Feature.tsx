@@ -61,7 +61,7 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
               const cosine_sim = roundToHundredth(similar.cosine_similarity);
               return (
                 <div className="flex flex-row space-x-2 items-center" key={i}>
-                  <img src={baseUrl} className="h-6 w-6 rounded-md" />
+                  <img src={similar.image} className="h-6 w-6 rounded-md" />
                   <p className="text-sm">{similar.feature_id}</p>
                   <p className="text-sm">{cosine_sim}</p>
                 </div>

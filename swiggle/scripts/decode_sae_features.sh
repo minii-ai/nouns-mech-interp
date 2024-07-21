@@ -4,8 +4,11 @@ python3 decode_sae_features.py \
     --latent_shape="4,4,4" \
     --vae_checkpoint=../weights/vae \
     --vae_embeddings=../data/vae_embeddings.npy \
-    --output_dir=../data/asdf \
-    --sae_checkpoint="../checkpoints/sae_l1/lr=8.0e-03_l1=4.0e-02" \
+    --output_dir=../data/sae_decoded_features \
+    --sae_checkpoint="../checkpoints/sae_gucci/lr=3.0e-02_l1=1.0e-01" \
+    # --sae_checkpoint="../checkpoints/sae_good/lr=1.0e-02_l1=1.0e-02" \
+    # --sae_checkpoint="../checkpoints/sae_l1/lr=8.0e-03_l1=4.0e-02" \
+    # --sae_checkpoint="../checkpoints/sae_l1/lr=8.0e-03_l1=4.0e-02" \
     # --sae_checkpoint="../checkpoints/sae_l1/lr=8.0e-03_l1=4.0e-02" \
     # --sae_checkpoint="../checkpoints/sae_l1/lr=3.0e-03_l1=8.0e-02" \
     # --sae_checkpoint="../checkpoints/sae_experiments_improved_l1/lr=5.0e-04_l1=1.0e-03" \
