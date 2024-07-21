@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from supabase import Client
 
-from .client import supabase_client
 from .utils import deserialize_json_values, serialize_non_json_values
 
 
@@ -31,28 +30,44 @@ class NounsFeatureTable:
         print(f'Feature {nouns_feature["id"]} was successfully added')
         return result
 
-    def get(self, nouns_feature_id, deserialize=True):
-        try:
-            if self._get_is_dead_status_from_csv(nouns_feature_id):
-                return None
-            feature = (
-                self.table.select("*").eq("id", nouns_feature_id).execute().data[0]
+    def get(self, nouns_feature_id):
+        features = (
+            self.table.select(
+                "id",
+                "description",
+                "top_k_images",
+                "similar_features",
+                "activations",
+                "activation_density",
             )
-            result = deserialize_json_values(feature) if deserialize else feature
-            return result
-        except:
+            .eq("id", nouns_feature_id)
+            .execute()
+            .data
+        )
+
+        exists = len(features) > 0
+
+        if not exists:
             return None
 
-    def get_all(self, deserialize=True):
-        features = self.table.select("*").execute().data
-        result = [
-            (
-                deserialize_json_values(feature)
-                if deserialize and not self._get_is_dead_status_from_csv(feature["id"])
-                else feature
-            )
-            for feature in features
-        ]
+        result = deserialize_json_values(features[0])
+        return result
+
+    # def get(self, nouns_feature_id, deserialize=True):
+    #     try:
+    #         if self._get_is_dead_status_from_csv(nouns_feature_id):
+    #             return None
+    #         feature = (
+    #             self.table.select("*").eq("id", nouns_feature_id).execute().data[0]
+    #         )
+    #         result = deserialize_json_values(feature) if deserialize else feature
+    #         return result
+    #     except:
+    #         return None
+
+    def get_all(self):
+        features = self.table.select("id", "description", "pca").limit(2).execute().data
+        result = [(deserialize_json_values(feature)) for feature in features]
         return result
 
     def _add_json_file(self, json_dir):

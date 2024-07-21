@@ -168,6 +168,8 @@ async def main(args):
     l1_weights = [float(l1_weight) for l1_weight in args.lambda_l1.split(",")]
     configs = list(itertools.product(lrs, l1_weights))
 
+    print(configs)
+
     os.makedirs(args.save_dir, exist_ok=True)
 
     # put jobs in the queue

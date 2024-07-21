@@ -1,10 +1,7 @@
 import base64
+from typing import Union
 
 from supabase import Client
-
-from .client import supabase_client
-
-# from .features_db import featuresDB
 
 
 class ReconstructedImageFeatureBucket:
@@ -18,15 +15,16 @@ class ReconstructedImageFeatureBucket:
     def isEmpty(self):
         return self.size() == 0
 
-    def get(
-        self,
-        feature_id: str,
-    ) -> str:
+    def get(self, feature_id: str, format: str = "base64") -> str:
         file_path = f"./{feature_id}.png"
         try:
             response = self.bucket.download(file_path)
-            base64_encoded = base64.b64encode(response).decode("utf-8")
-            return base64_encoded
+
+            if format == "base64":
+                base64_encoded = base64.b64encode(response).decode("utf-8")
+                return base64_encoded
+            else:
+                return response
         except Exception as e:
             print(f"An error occurred: {e}")
             return ""

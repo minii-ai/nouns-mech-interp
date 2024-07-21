@@ -3,15 +3,15 @@
 python run_sae_experiment.py \
     --in_features=64 \
     --expansion_factor=16 \
-    --lr=1e-4 \
+    --lr=1e-3,5e-4,1e-5 \
     --iterations=1000000 \
-    --lambda_l1=8e-3,4e-3,1e-3,7e-4 \
+    --lambda_l1=3e-3,2e-3,1e-3 \
     --batch_size=4096 \
-    --save_dir="../checkpoints/sae_experiments_improved" \
+    --save_dir="../checkpoints/sae_experiments_improved_l1" \
     --checkpoint_every=5000 \
     --vae_embeddings_path="../data/vae_embeddings.npy" \
     --vae_checkpoint=../weights/vae \
-    --concurrent_experiments=6 \
+    --concurrent_experiments=9 \
     --latent_shape=4,4,4 \
     --seed=32 \
     # --lambda_l1=5e-2,3e-2,1e-2 \
