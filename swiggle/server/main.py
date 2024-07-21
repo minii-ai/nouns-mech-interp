@@ -3,19 +3,32 @@ import json
 from typing import Union
 
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 from .database import imagesDB
 from .services import (
     features_db,
     features_service,
-    image,
     image_feature_bucket,
     nouns_dataset,
     sae,
 )
 
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Allow specified origins
+    allow_credentials=True,  # Allow cookies and credentials
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 
 def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
@@ -46,7 +59,7 @@ def get_feature(feature_id: int, request: Request):
         raise HTTPException(status_code=404, detail=f"Feature {feature_id} not found")
 
     # move to using cdn https://supabase.com/docs/guides/storage/serving/downloads
-    feature_image_url = request.base_url + f"api/features/{feature_id}/image"
+    feature_image_url = image_feature_bucket.get_url(feature_id)
     feature["image"] = feature_image_url
 
     return {"feature": feature}

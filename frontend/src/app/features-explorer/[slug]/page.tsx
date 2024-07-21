@@ -4,6 +4,7 @@ import useSWR from "swr";
 import FeatureCard from "../../components/Feature";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { useGetFeatureById } from "@/hooks/features";
 
 interface DataPoint {
   id: number;
@@ -16,12 +17,13 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function FeaturesExplorer() {
   const params = useParams();
-  const id = params.slug;
+  const id = params.slug as string;
   const router = useRouter();
 
-  const [features, setFeatures] = useState<DataPoint[]>([]);
-  const [error, setError] = useState<any>(null);
-  const [loadingFeatures, setLoadingFeatures] = useState(false);
+  const featureId = parseInt(id, 10);
+  const { data: feature, isLoading, error } = useGetFeatureById(featureId);
+
+  console.log({ feature });
 
   const [selectedFeature, setSelectedFeature] = useState<
     DataPoint | undefined
@@ -29,30 +31,31 @@ function FeaturesExplorer() {
   const [searchTerm, setSearchTerm] = useState("");
   const featureRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoadingFeatures(true);
-      try {
-        const response = await fetcher("/api/features/");
-        setFeatures(response.data);
-      } catch (error) {
-        setError(error);
-      } finally {
-        setLoadingFeatures(false);
-      }
-    };
+  console.log({ id });
 
-    fetchData();
+  useEffect(() => {
+    // const fetchData = async () => {
+    //   setLoadingFeatures(true);
+    //   try {
+    //     const response = await fetcher("/api/features/");
+    //     setFeatures(response.data);
+    //   } catch (error) {
+    //     setError(error);
+    //   } finally {
+    //     setLoadingFeatures(false);
+    //   }
+    // };
+    // fetchData();
   }, []);
 
-  useEffect(() => {
-    if (id && features) {
-      const feature = features.find(
-        (f: DataPoint) => f.id.toString() === id.toString()
-      );
-      setSelectedFeature(feature);
-    }
-  }, [id, features]);
+  // useEffect(() => {
+  //   if (id && features) {
+  //     const feature = features.find(
+  //       (f: DataPoint) => f.id.toString() === id.toString()
+  //     );
+  //     setSelectedFeature(feature);
+  //   }
+  // }, [id, features]);
 
   useEffect(() => {
     if (selectedFeature) {
@@ -65,11 +68,11 @@ function FeaturesExplorer() {
 
   if (error) return <div>Failed to load features</div>;
 
-  const filteredFeatures = features.filter(
-    (feature: DataPoint) =>
-      feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feature.id.toString().includes(searchTerm.toLowerCase())
-  );
+  // const filteredFeatures = features.filter(
+  //   (feature: DataPoint) =>
+  //     feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     feature.id.toString().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <div className="min-h-screen bg-white py-4">
@@ -96,28 +99,15 @@ function FeaturesExplorer() {
         </div>
       </div>
       <div className="h-full p-4">
-        <input
+        {/* <input
           type="text"
           placeholder="Search features..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="mb-4 w-full bg-transparent active:border-none focus:border-none focus:outline-none"
-        />
-        {!loadingFeatures && (
-          <div>
-            {filteredFeatures.map((feature: DataPoint) => (
-              <div
-                key={feature.id}
-                className="my-3"
-                ref={(el) => {
-                  featureRefs.current[feature.id] = el;
-                }}>
-                <FeatureCard feature={feature} />
-                {/* <div className="bg-gray-200 h-[1px] my-3" /> */}
-              </div>
-            ))}
-          </div>
-        )}
+        /> */}
+
+        {feature && <FeatureCard feature={feature} />}
       </div>
     </div>
   );

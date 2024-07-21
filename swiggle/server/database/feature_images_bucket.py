@@ -15,6 +15,11 @@ class ReconstructedImageFeatureBucket:
     def isEmpty(self):
         return self.size() == 0
 
+    def get_url(self, feature_id: str) -> str:
+        file_path = f"./{feature_id}.png"
+        url = self.bucket.create_signed_url(file_path, 3600)["signedURL"]
+        return url
+
     def get(self, feature_id: str, format: str = "base64") -> str:
         file_path = f"./{feature_id}.png"
         try:

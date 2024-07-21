@@ -13,12 +13,14 @@ interface PCAPlotProps {
   data: DataPoint[];
   onSelect?: (id: number) => void;
   selectedFeature?: DataPoint;
+  features: any[];
 }
 
 const PCAPlot: React.FC<PCAPlotProps> = ({
   data,
   onSelect,
   selectedFeature,
+  features,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{
@@ -50,13 +52,16 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
 
     const xScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.x) as number])
+      .domain([0, d3.max(features, (f) => f.pca[0]) as number])
+      // .domain([0, d3.max(data, (d) => d.x) as number])
+      // .range([0, width]);
       .range([0, width]);
 
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.y) as number])
-      .range([height, 0]);
+      .domain([0, d3.max(features, (f) => f.pca[1]) as number])
+      // .domain([0, d3.max(data, (d) => d.y) as number])
+      .range([height, -5]);
 
     const xAxis = d3
       .axisBottom(xScale)
@@ -87,11 +92,16 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
 
     const dotGroups = svg
       .selectAll(".dot-group")
-      .data(data)
+      .data(features)
+      // .data(data)
       .enter()
       .append("g")
       .attr("class", "dot-group")
-      .attr("transform", (d) => `translate(${xScale(d.x)}, ${yScale(d.y)})`)
+      .attr(
+        "transform",
+        (d) => `translate(${xScale(d.pca[0])}, ${yScale(d.pca[1])})`
+      )
+      // .attr("transform", (d) => `translate(${xScale(d.x)}, ${yScale(d.y)})`)
       .style("cursor", "pointer");
 
     // Add padding circle with border
@@ -118,10 +128,13 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           .attr("stroke", "black")
           .attr("stroke-width", 1);
         setTooltip({
-          x: xScale(d.x),
-          y: yScale(d.y),
+          x: xScale(d.pca[0]),
+          y: yScale(d.pca[1]),
+          // x: xScale(d.x),
+          // y: yScale(d.y),
           id: d.id,
           name: d.name,
+          // name: d.name,
           visible: true,
         });
         if (onSelect) {
@@ -134,8 +147,10 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           onSelect(d.id);
         }
         setTooltip({
-          x: xScale(d.x),
-          y: yScale(d.y),
+          x: xScale(d.pca[0]),
+          y: xScale(d.pca[1]),
+          // x: xScale(d.x),
+          // y: yScale(d.y),
           id: d.id,
           name: d.name,
           visible: true,
@@ -162,15 +177,18 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
 
     svg
       .selectAll(".label")
-      .data(data)
+      .data(features)
+      // .data(data)
       .enter()
       .append("text")
       .text((d) => `#${d.id}`)
-      .attr("x", (d) => xScale(d.x))
-      .attr("y", (d) => yScale(d.y) - 8)
+      .attr("x", (d) => xScale(d.pca[0]))
+      // .attr("x", (d) => xScale(d.x))
+      .attr("y", (d) => yScale(d.pca[1]) - 8)
+      // .attr("y", (d) => yScale(d.y) - 8)
       .attr("font-size", "10px")
       .attr("text-anchor", "middle");
-  }, [data, height, width, onSelect, selectedFeature]);
+  }, [data, height, width, onSelect, selectedFeature, features]);
 
   return (
     <div className="relative">

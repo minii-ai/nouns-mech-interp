@@ -3,6 +3,7 @@ import { useState } from "react";
 import FeaturesTable from "../components/FeaturesTable";
 import PCAPlot from "../components/PCAPlot";
 import { useRouter } from "next/navigation";
+import { useGetFeatures } from "@/hooks/features";
 
 interface DataPoint {
   id: number;
@@ -36,6 +37,10 @@ export default function Home() {
   const [selectedFeature, setSelectedFeature] = useState<
     DataPoint | undefined
   >();
+
+  const { data: features = [] } = useGetFeatures();
+
+  console.log({ features });
 
   const handleSelectedFeature = (id: number) => {
     const selectedFeature = featuresPCA.find(
@@ -82,7 +87,8 @@ export default function Home() {
           </p>
           <button
             className="mt-5 px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
-            onClick={() => handleGotoFeatures()}>
+            onClick={() => handleGotoFeatures()}
+          >
             Feature Details →
           </button>
         </div>
@@ -92,9 +98,10 @@ export default function Home() {
           data={featuresPCA}
           onSelect={handleSelectedFeature}
           selectedFeature={selectedFeature}
+          features={features}
         />
         <FeaturesTable
-          features={featuresPCA}
+          features={features}
           onClick={handleMoreInfo}
           selectedFeature={selectedFeature}
         />

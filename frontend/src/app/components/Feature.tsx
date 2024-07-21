@@ -8,6 +8,10 @@ interface FeatureProps {
   feature: any;
 }
 
+function roundToHundredth(num: number) {
+  return Math.round(num * 100) / 100;
+}
+
 const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
   const router = useRouter();
 
@@ -35,24 +39,34 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
     router.push(`/image-playground/${id}`);
   };
 
+  const getActivationDensityPercent = () => {
+    return roundToHundredth(feature.activation_density * 100);
+  };
+
+  const activationDensityPercent = getActivationDensityPercent();
+
   return (
     <div className="bg-[#f9fafb] rounded-xl p-4 border-gray-100 border">
       <div className="flex flex-row items-center space-x-2">
-        <img src={baseUrl} className="h-[48px] w-[48px] rounded-md" />
+        <img src={feature.image} className="h-[48px] w-[48px] rounded-md" />
         <p className="text-lg">#{feature.id}</p>
-        <p className="text-lg font-medium">{feature.name}</p>
+        <p className="text-lg font-medium">{feature.description}</p>
       </div>
       <div className="text-gray-500 flex flex-row justify-between mt-5">
         <div>
           <p className="text-sm font-medium mb-4">Similar Features</p>
           <div className="space-y-3">
-            {similarFeatures.map((similar: any, i: any) => (
-              <div className="flex flex-row space-x-2 items-center" key={i}>
-                <img src={baseUrl} className="h-6 w-6 rounded-md" />
-                <p className="text-sm">{similar.name}</p>
-                <p className="text-sm">{similar.strength}</p>
-              </div>
-            ))}
+            {/* {similarFeatures.map((similar: any, i: any) => ( */}
+            {feature.similar_features.map((similar: any, i: any) => {
+              const cosine_sim = roundToHundredth(similar.cosine_similarity);
+              return (
+                <div className="flex flex-row space-x-2 items-center" key={i}>
+                  <img src={baseUrl} className="h-6 w-6 rounded-md" />
+                  <p className="text-sm">{similar.feature_id}</p>
+                  <p className="text-sm">{cosine_sim}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div>
@@ -76,7 +90,9 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
           }
         </div>
         <div>
-          <p className="text-sm font-medium mb-4">Activation Density (0.05%)</p>
+          <p className="text-sm font-medium mb-4">
+            Activation Density ({activationDensityPercent}%)
+          </p>
           <DensityHistogram data={densityHist} />
         </div>
       </div>

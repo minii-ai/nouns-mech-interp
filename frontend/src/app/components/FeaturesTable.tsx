@@ -8,7 +8,8 @@ interface DataPoint {
 }
 
 interface FeaturesTableProps {
-  features: DataPoint[];
+  // features: DataPoint[];
+  features: any[];
   selectedFeature?: DataPoint;
   onClick?: any;
 }
@@ -22,10 +23,9 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const featureRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
-  const filteredFeatures = features.filter(
-    (feature: any) =>
-      feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feature.id.toString().includes(searchTerm.toLowerCase())
+  const filteredFeatures = features.filter((feature: any) =>
+    // feature.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    feature.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   useEffect(() => {
@@ -73,19 +73,21 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
                     selectedFeature?.id === feature.id
                       ? "bg-white"
                       : "bg-[#f9fafb]"
-                  }`}>
+                  }`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex flex-row items-center max-w-[100px]">
                     <div className="h-2 w-2 rounded-full bg-orange-800 mr-2" />
                     <div># {feature.id}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     <div className="flex flex-row items-center justify-between">
-                      <div>{feature.name}</div>
+                      <div>{feature.description}</div>
                       {(hoveredId === feature.id ||
                         selectedFeature?.id === feature.id) && (
                         <button
                           onClick={() => onClick(feature.id)}
-                          className="transition-opacity duration-200 ml-4 underline text-orange-800">
+                          className="transition-opacity duration-200 ml-4 underline text-orange-800"
+                        >
                           More Info
                         </button>
                       )}
