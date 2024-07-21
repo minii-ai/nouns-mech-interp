@@ -9,6 +9,7 @@ from .database import imagesDB
 from .services import (
     features_db,
     features_service,
+    image,
     image_feature_bucket,
     nouns_dataset,
     sae,

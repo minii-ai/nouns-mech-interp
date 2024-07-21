@@ -124,6 +124,7 @@ class SAE(nn.Module):
         output = self.forward(x)
 
         recon_loss = F.mse_loss(output.recon, x)
+        recon_loss = (output.recon - x).pow(2).sum(-1).mean(0)
         l1_loss = lmbda * output.latent.abs().sum(dim=1).mean()
         loss = recon_loss + l1_loss
 

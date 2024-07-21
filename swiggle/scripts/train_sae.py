@@ -96,7 +96,7 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=True,
         pin_memory=True,
-        num_workers=4,
+        num_workers=3,
     )
 
     # load vae
