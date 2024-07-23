@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 
 interface DataPoint {
   id: number;
-  name: string;
-  x: number;
-  y: number;
+  description: string;
+  pca: [x: number, y: number];
 }
 
 interface FeaturesTableProps {
@@ -73,8 +72,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
                     selectedFeature?.id === feature.id
                       ? "bg-white"
                       : "bg-[#f9fafb]"
-                  }`}
-                >
+                  }`}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 flex flex-row items-center max-w-[100px]">
                     <div className="h-2 w-2 rounded-full bg-orange-800 mr-2" />
                     <div># {feature.id}</div>
@@ -86,8 +84,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
                         selectedFeature?.id === feature.id) && (
                         <button
                           onClick={() => onClick(feature.id)}
-                          className="transition-opacity duration-200 ml-4 underline text-orange-800"
-                        >
+                          className="transition-opacity duration-200 ml-4 underline text-orange-800">
                           More Info
                         </button>
                       )}

@@ -4,9 +4,8 @@ import Tooltip from "./Tooltip";
 
 interface DataPoint {
   id: number;
-  name: string;
-  x: number;
-  y: number;
+  description: string;
+  pca: [x: number, y: number];
 }
 
 interface PCAPlotProps {
@@ -22,18 +21,79 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
   selectedFeature,
   features,
 }) => {
+  // const features: any[] = [
+  //   {
+  //     id: 1,
+  //     description: "zombie-hand-shaped head",
+  //     pca: [0.6152710318565369, -0.6961963176727295],
+  //   },
+  //   {
+  //     id: 3,
+  //     description: "pickle-shaped head",
+  //     pca: [3.1978063583374023, 4.590380668640137],
+  //   },
+  //   {
+  //     id: 4,
+  //     description: "triangle-shaped head",
+  //     pca: [-2.154123306274414, 1.673564910888672],
+  //   },
+  //   {
+  //     id: 5,
+  //     description: "starfish-shaped head",
+  //     pca: [1.9827160835266113, -3.2751803398132324],
+  //   },
+  //   {
+  //     id: 6,
+  //     description: "cloud-shaped head",
+  //     pca: [4.012364387512207, 0.5243813991546631],
+  //   },
+  //   {
+  //     id: 7,
+  //     description: "diamond-shaped head",
+  //     pca: [-1.5682933330535889, 2.8765721321105957],
+  //   },
+  //   {
+  //     id: 8,
+  //     description: "heart-shaped head",
+  //     pca: [0.34512317180633545, -2.9871625900268555],
+  //   },
+  //   {
+  //     id: 9,
+  //     description: "crescent-moon-shaped head",
+  //     pca: [3.7158737182617188, -0.8542673587799072],
+  //   },
+  //   {
+  //     id: 10,
+  //     description: "pyramid-shaped head",
+  //     pca: [-4.112345218658447, 1.234567642211914],
+  //   },
+  //   {
+  //     id: 11,
+  //     description: "flower-shaped head",
+  //     pca: [1.6783924102783203, -1.234987497329712],
+  //   },
+  //   {
+  //     id: 12,
+  //     description: "hexagon-shaped head",
+  //     pca: [2.875916004180908, 1.987325668334961],
+  //   },
+  //   {
+  //     id: 13,
+  //     description: "arrow-shaped head",
+  //     pca: [-0.4561324110031128, 3.6742091178894043],
+  //   },
+  // ];
+
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [tooltip, setTooltip] = useState<{
-    x: number;
-    y: number;
+    pca: [x: number, y: number];
     id: number;
-    name: string;
+    description: string;
     visible: boolean;
   }>({
-    x: 0,
-    y: 0,
+    pca: [0, 0],
     id: 0,
-    name: "",
+    description: "",
     visible: false,
   });
 
@@ -50,18 +110,9 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
 
     svg.selectAll("*").remove();
 
-    const xScale = d3
-      .scaleLinear()
-      .domain([0, d3.max(features, (f) => f.pca[0]) as number])
-      // .domain([0, d3.max(data, (d) => d.x) as number])
-      // .range([0, width]);
-      .range([0, width]);
+    const xScale = d3.scaleLinear().domain([-5, 5]).range([0, width]);
 
-    const yScale = d3
-      .scaleLinear()
-      .domain([0, d3.max(features, (f) => f.pca[1]) as number])
-      // .domain([0, d3.max(data, (d) => d.y) as number])
-      .range([height, -5]);
+    const yScale = d3.scaleLinear().domain([-5, 5]).range([height, 0]);
 
     const xAxis = d3
       .axisBottom(xScale)
@@ -93,7 +144,6 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
     const dotGroups = svg
       .selectAll(".dot-group")
       .data(features)
-      // .data(data)
       .enter()
       .append("g")
       .attr("class", "dot-group")
@@ -101,7 +151,6 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
         "transform",
         (d) => `translate(${xScale(d.pca[0])}, ${yScale(d.pca[1])})`
       )
-      // .attr("transform", (d) => `translate(${xScale(d.x)}, ${yScale(d.y)})`)
       .style("cursor", "pointer");
 
     // Add padding circle with border
@@ -128,13 +177,9 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           .attr("stroke", "black")
           .attr("stroke-width", 1);
         setTooltip({
-          x: xScale(d.pca[0]),
-          y: yScale(d.pca[1]),
-          // x: xScale(d.x),
-          // y: yScale(d.y),
+          pca: [xScale(d.pca[0]), yScale(d.pca[1])],
           id: d.id,
-          name: d.name,
-          // name: d.name,
+          description: d.description,
           visible: true,
         });
         if (onSelect) {
@@ -147,12 +192,9 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           onSelect(d.id);
         }
         setTooltip({
-          x: xScale(d.pca[0]),
-          y: xScale(d.pca[1]),
-          // x: xScale(d.x),
-          // y: yScale(d.y),
+          pca: [xScale(d.pca[0]), yScale(d.pca[1])],
           id: d.id,
-          name: d.name,
+          description: d.description,
           visible: true,
         });
       })
@@ -162,10 +204,9 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
           .attr("stroke", d.id === selectedFeature?.id ? "black" : "none")
           .attr("stroke-width", d.id === selectedFeature?.id ? 1 : 0);
         setTooltip({
-          x: 0,
-          y: 0,
+          pca: [0, 0],
           id: 0,
-          name: "",
+          description: "",
           visible: false,
         });
       })
@@ -178,14 +219,11 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
     svg
       .selectAll(".label")
       .data(features)
-      // .data(data)
       .enter()
       .append("text")
       .text((d) => `#${d.id}`)
       .attr("x", (d) => xScale(d.pca[0]))
-      // .attr("x", (d) => xScale(d.x))
       .attr("y", (d) => yScale(d.pca[1]) - 8)
-      // .attr("y", (d) => yScale(d.y) - 8)
       .attr("font-size", "10px")
       .attr("text-anchor", "middle");
   }, [data, height, width, onSelect, selectedFeature, features]);
@@ -195,10 +233,10 @@ const PCAPlot: React.FC<PCAPlotProps> = ({
       <svg ref={svgRef}></svg>
       {tooltip.visible && (
         <Tooltip
-          x={tooltip.x}
-          y={tooltip.y}
+          x={tooltip.pca[0]}
+          y={tooltip.pca[1]}
           id={tooltip.id}
-          name={tooltip.name}
+          name={tooltip.description}
           visible={tooltip.visible}
         />
       )}
