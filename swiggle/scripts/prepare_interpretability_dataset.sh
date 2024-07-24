@@ -1,7 +1,7 @@
 #!/bin/bash
 
 python3 prepare_interpretability_dataset.py \
-    --sae_checkpoint="../checkpoints/sae_gucci/lr=3.0e-02_l1=1.0e-01" \
+    --sae_checkpoint="../checkpoints/sam/lr=1.0e-02_l1=1.0e-02" \
     --vae_checkpoint="../weights/vae" \
     --output_dir="../data/interp_dataset" \
     --decoded_features_dir="../data/sae_decoded_features" \

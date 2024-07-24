@@ -67,6 +67,7 @@ class NounsFeatureTable:
 
     def get_all(self):
         features = self.table.select("id", "description", "pca").limit(2).execute().data
+        # features = self.table.select("id", "description", "pca").execute().data
         result = [(deserialize_json_values(feature)) for feature in features]
         return result
 

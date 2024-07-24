@@ -8,8 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 from .database import imagesDB
-from .services import (features_db, features_service, image_feature_bucket,
-                       nouns_dataset, sae)
+from .services import (
+    features_db,
+    features_service,
+    image_feature_bucket,
+    nouns_dataset,
+    sae,
+)
 
 origins = [
     "http://localhost",
@@ -107,7 +112,7 @@ async def get_image_data(image_id: int):
 
     features_list = []
     for feature in features:
-        feature["image"] = image_feature_bucket.get_url(feature["feature_id"])
+        # feature["image"] = image_feature_bucket.get_url(feature["feature_id"])
         features_list.append(feature)
 
     base64_image = pil_image_to_base64(data["image"])

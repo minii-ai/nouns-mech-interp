@@ -89,6 +89,25 @@ const modifyFeatures = async (imageId: number, features: object) => {
   return json.base64;
 };
 
+const modifyImageWithText = async (imageId: number, text: string) => {
+  const api = `http://localhost:8000/api/images/${imageId}/text`;
+  const body = {
+    text,
+  };
+
+  const res = await fetch(api, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const json = await res.json();
+
+  return json;
+};
+
 function ImagePlayground() {
   const params = useParams();
   const id = params.slug as string;
@@ -186,30 +205,57 @@ function ImagePlayground() {
   const handleReset = () => {
     // Set image url to empty
     setModifiedImageUrl("");
+
+    setModifiedImageBase64(null);
+
+    const featuresData = {};
+    imageData.features.forEach((feature) => {
+      featuresData[feature.feature_id] = feature.activation;
+    });
+
+    setFeatures(featuresData);
+
     // Remove modified features
-    setModifiedFeatures([]);
+    // setModifiedFeatures([]);
     // Reset learned features to original state
-    setLearnedFeatures(originalFeatures);
+    // setLearnedFeatures(originalFeatures);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       // Add your logic here for what should happen when the "Enter" key is pressed
       console.log(featureSearchQuery);
       console.log("Enter key pressed");
+
+      // const {} = await modifyImageWithText(imageId, featureSearchQuery);
+
+      const features = [{ feature_id: 1, activation: 0.5, image: "htp://" }];
+
+      const originalFeatures = { ...features };
+      // const modifiedFeatures = {};
+
+      features.forEach((feature) => {
+        if (feature.feature_id in originalFeatures) {
+          originalFeatures[feature.feature_id] = feature.activation;
+        } else {
+        }
+      });
+
+      const modifiedFeatures = [];
+
       // Find Feature searching for
       // If new image not in learned, set modified features to previous plus new feature
-      let newFeature = {
-        x: 290,
-        y: 300,
-        name: featureSearchQuery,
-        id: 134,
-        activation: 0.2,
-      };
-      if (newFeature) {
-        // Set modified features to previous plus new image
-        setModifiedFeatures((prevFeatures) => [...prevFeatures, newFeature]);
-      }
+      // let newFeature = {
+      //   x: 290,
+      //   y: 300,
+      //   name: featureSearchQuery,
+      //   id: 134,
+      //   activation: 0.2,
+      // };
+      // if (newFeature) {
+      //   // Set modified features to previous plus new image
+      //   setModifiedFeatures((prevFeatures) => [...prevFeatures, newFeature]);
+      // }
       setFeatureSearchQuery("");
     }
   };
@@ -309,7 +355,7 @@ function ImagePlayground() {
             </div>
             {/* Only show if not original image */}
             <div className="cursor-pointer h-6" onClick={handleReset}>
-              {modifiedImageUrl && <p>reset to original</p>}
+              {modifiedImageBase64 && <p>reset to original</p>}
             </div>
           </div>
           <div className="w-1/2 pl-[50px] flex flex-col h-full">
@@ -333,13 +379,6 @@ function ImagePlayground() {
             {imageData.features.length > 0 && (
               <div className="overflow-y-scroll h-1/2">
                 {imageData.features.map((feature) => {
-                  // const modifiedFeature = modifiedFeatures.find(
-                  //   (mf) => mf.id === feature.id
-                  // );
-                  // const displayActivation = modifiedFeature
-                  //   ? modifiedFeature.activation
-                  //   : feature.activation;
-
                   const displayActivation = features[feature.feature_id] || 0;
 
                   return (

@@ -8,7 +8,7 @@ GET http://127.0.0.1:8000/api/features/0
 GET http://127.0.0.1:8000/api/features/1/image
 
 ###
-GET http://127.0.0.1:8000/api/images/0
+GET http://127.0.0.1:8000/api/images/10
 
 ###
 POST http://127.0.0.1:8000/api/images/0/features
