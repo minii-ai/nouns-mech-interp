@@ -11,6 +11,7 @@ import FeatureCard from "../../components/Feature";
 import { useParams, useRouter } from "next/navigation";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useGetImageDataById } from "@/hooks/images";
+import Image from "next/image";
 // import { Rotate } from "tabler-icons-react";
 
 interface Feature {
@@ -128,9 +129,9 @@ function ImagePlayground() {
         }
       );
 
-      console.log(modifiedFeatures);
+      // console.log(modifiedFeatures);
       const modifiedBase64 = await modifyFeatures(imageId, modifiedFeatures);
-      console.log(modifiedBase64);
+      // console.log(modifiedBase64);
 
       setModifiedImageBase64(modifiedBase64);
     }, 1000);
@@ -166,6 +167,10 @@ function ImagePlayground() {
     //   )
     // );
   };
+
+  useEffect(() => {
+    console.log(hoveredId);
+  }, [hoveredId]);
 
   const removeModifiedFeature = (id: number) => {
     setModifiedFeatures((prevFeatures) =>
@@ -297,9 +302,12 @@ function ImagePlayground() {
         <div className="flex justify-between mb-8 px-[100px] h-full">
           <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center h-full">
             <div className="relative h-[360px] w-[360px] flex items-center justify-center mb-6">
-              <img
+              <Image
                 src={formatBase64Image(modifiedImageBase64 || imageData.base64)}
-                className="h-[360px] w-[360px] rounded-lg border border-gray-200"
+                className="rounded-lg border border-gray-200"
+                width={360}
+                height={360}
+                alt="original image"
               />
 
               {/* <img
@@ -315,11 +323,13 @@ function ImagePlayground() {
           <div className="w-1/2 pl-[50px] flex flex-col h-full">
             <div
               className="flex flex-row cursor-pointer items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
-              onClick={() => console.log("adding feature")}
-            >
-              <img
+              onClick={() => console.log("adding feature")}>
+              <Image
                 src={formatBase64Image(imageData.base64)}
                 className="h-[44px] w-[44px] rounded-md mr-2"
+                alt={imageData.text}
+                width={360}
+                height={360}
               />
               <p>
                 {/* a pixel art character with square black glasses, a hotdog-shaped
@@ -332,7 +342,7 @@ function ImagePlayground() {
             </p>
             {imageData.features.length > 0 && (
               <div className="overflow-y-scroll h-1/2">
-                {imageData.features.map((feature) => {
+                {imageData.features.map((feature: any) => {
                   // const modifiedFeature = modifiedFeatures.find(
                   //   (mf) => mf.id === feature.id
                   // );
@@ -344,11 +354,10 @@ function ImagePlayground() {
 
                   return (
                     <div
-                      key={feature.id}
+                      key={feature.feature_id}
                       className="mb-4"
-                      onMouseEnter={() => setHoveredId(feature.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                    >
+                      onMouseEnter={() => setHoveredId(feature.feature_id)}
+                      onMouseLeave={() => setHoveredId(null)}>
                       <div className="flex flex-row items-center justify-between">
                         <div>
                           <div className="flex flex-row items-center space-x-2 mb-3">
@@ -368,7 +377,7 @@ function ImagePlayground() {
                             <input
                               type="range"
                               min="0"
-                              max="40"
+                              max="60"
                               step="1"
                               value={displayActivation * 10}
                               onChange={(e) =>
@@ -381,11 +390,10 @@ function ImagePlayground() {
                             />
                           </div>
                         </div>
-                        {hoveredId === feature.id && (
+                        {hoveredId === feature.feature_id && (
                           <button
-                            onClick={() => handleMoreInfo(feature.id)}
-                            className="transition-opacity duration-200 ml-4 underline text-orange-800"
-                          >
+                            onClick={() => handleMoreInfo(feature.feature_id)}
+                            className="transition-opacity duration-200 ml-4 underline text-orange-800">
                             More Info
                           </button>
                         )}
@@ -403,8 +411,7 @@ function ImagePlayground() {
               {modifiedFeatures.map((feature) => (
                 <div
                   key={feature.id}
-                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between"
-                >
+                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between">
                   <div className="flex flex-row items-center">
                     <img
                       src={newUrl}

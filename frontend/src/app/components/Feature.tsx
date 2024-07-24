@@ -3,16 +3,18 @@ import Image from "next/image";
 import React, { useEffect, useRef, useState } from "react";
 import DensityHistogram from "./DensityHistogram";
 import { useRouter } from "next/navigation";
+import { useGetImageDataById } from "@/hooks/images";
 
 interface FeatureProps {
   feature: any;
+  top_k_images: any[];
 }
 
 function roundToHundredth(num: number) {
   return Math.round(num * 100) / 100;
 }
 
-const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
+const FeatureCard: React.FC<FeatureProps> = ({ feature, top_k_images }) => {
   const router = useRouter();
 
   const similarFeatures: any = [
@@ -43,6 +45,8 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
     return roundToHundredth(feature.activation_density * 100);
   };
 
+  console.log(feature);
+
   const activationDensityPercent = getActivationDensityPercent();
 
   return (
@@ -56,24 +60,25 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
         <div>
           <p className="text-sm font-medium mb-4">Similar Features</p>
           <div className="space-y-3">
-            {/* {similarFeatures.map((similar: any, i: any) => ( */}
-            {feature.similar_features.map((similar: any, i: any) => {
-              const cosine_sim = roundToHundredth(similar.cosine_similarity);
-              return (
-                <div className="flex flex-row space-x-2 items-center" key={i}>
-                  <img src={similar.image} className="h-6 w-6 rounded-md" />
-                  <p className="text-sm">{similar.feature_id}</p>
-                  <p className="text-sm">{cosine_sim}</p>
-                </div>
-              );
-            })}
+            {feature.similar_features
+              .slice(0, 5)
+              .map((similar: any, i: any) => {
+                const cosine_sim = roundToHundredth(similar.cosine_similarity);
+                return (
+                  <div className="flex flex-row space-x-2 items-center" key={i}>
+                    <img src={similar.image} className="h-6 w-6 rounded-md" />
+                    <p className="text-sm">{similar.feature_id}</p>
+                    <p className="text-sm">{cosine_sim}</p>
+                  </div>
+                );
+              })}
           </div>
         </div>
         <div>
           <p className="text-sm font-medium mb-4">Top Activations</p>
           {
             <div className="flex flex-row space-x-3">
-              {similarFeatures.map((similar: any, i: any) => (
+              {/* {similarFeatures.map((similar: any, i: any) => (
                 <div className="flex flex-col items-center" key={i}>
                   <Image
                     src={baseUrl}
@@ -84,6 +89,19 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
                     alt={similar.id}
                   />
                   <p className="text-sm mt-2">{similar.strength}</p>
+                </div>
+              ))} */}
+              {top_k_images.slice(0, 5).map((top_k: any, i: any) => (
+                <div className="flex flex-col items-center" key={i}>
+                  <Image
+                    src={baseUrl}
+                    className="rounded-md cursor-pointer"
+                    onClick={() => handleGotoPlayground(top_k.image_id)}
+                    width={72}
+                    height={72}
+                    alt={top_k.image_id}
+                  />
+                  <p className="text-sm mt-2">{top_k.activation.toFixed(3)}</p>
                 </div>
               ))}
             </div>

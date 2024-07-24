@@ -5,6 +5,7 @@ import FeatureCard from "../../components/Feature";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useGetFeatureById } from "@/hooks/features";
+import { useGetImageDataById } from "@/hooks/images";
 
 interface DataPoint {
   id: number;
@@ -30,6 +31,32 @@ function FeaturesExplorer() {
   >();
   const [searchTerm, setSearchTerm] = useState("");
   const featureRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+
+  const [imageDataList, setImageDataList] = useState<any[]>([]);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  // useEffect(() => {
+  //   const fetchImageData = async () => {
+  //     try {
+  //       setIsImageLoading(true);
+  //       console.log(feature.top_k_images);
+  //       const promises = feature.top_k_images.map((image: any) =>
+  //         useGetImageDataById(image.image_id)
+  //       );
+  //       const results = await Promise.all(promises);
+  //       console.log(results);
+  //       setImageDataList(results);
+  //     } catch (error) {
+  //       console.error("Error fetching image data:", error);
+  //     } finally {
+  //       setIsImageLoading(false);
+  //     }
+  //   };
+
+  //   if (feature && feature.top_k_images) {
+  //     fetchImageData();
+  //   }
+  // }, [feature]);
 
   console.log({ id });
 
@@ -107,7 +134,9 @@ function FeaturesExplorer() {
           className="mb-4 w-full bg-transparent active:border-none focus:border-none focus:outline-none"
         /> */}
 
-        {feature && <FeatureCard feature={feature} />}
+        {feature && (
+          <FeatureCard feature={feature} top_k_images={imageDataList} />
+        )}
       </div>
     </div>
   );

@@ -89,7 +89,7 @@ export default function Home() {
       </div>
       <div className="flex flex-row mt-10 bg-[#f9fafb] py-4 space-x-3">
         <PCAPlot
-          data={features}
+          dat_a={features}
           onSelect={handleSelectedFeature}
           selectedFeature={selectedFeature}
           features={features}
