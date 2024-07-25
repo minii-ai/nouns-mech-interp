@@ -11,7 +11,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
 import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
-
 from vae_interp.analysis import get_activations_info
 from vae_interp.dataset import NpyDataset, load_nouns_dataset
 from vae_interp.sae import SAE
@@ -55,7 +54,7 @@ def main(args):
     vae.to(device)
 
     # load sae
-    sae_config_path = os.path.join(args.sae_checkpoint, "sae_config.json")
+    sae_config_path = os.path.join(args.sae_checkpoint, "config.json")
     sae_weights_path = os.path.join(args.sae_checkpoint, "sae.pth")
     sae = SAE.load_from_checkpoint(sae_config_path, sae_weights_path)
     sae.eval()

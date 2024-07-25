@@ -123,7 +123,6 @@ class SAE(nn.Module):
     def loss(self, x: torch.Tensor, lmbda: float) -> SAELossOutput:
         output = self.forward(x)
 
-        recon_loss = F.mse_loss(output.recon, x)
         recon_loss = (output.recon - x).pow(2).sum(-1).mean(0)
         l1_loss = lmbda * output.latent.abs().sum(dim=1).mean()
         loss = recon_loss + l1_loss

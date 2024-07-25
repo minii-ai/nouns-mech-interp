@@ -37,7 +37,7 @@ def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load sae
-    sae_config_path = os.path.join(args.sae_checkpoint, "sae_config.json")
+    sae_config_path = os.path.join(args.sae_checkpoint, "config.json")
     sae_weights_path = os.path.join(args.sae_checkpoint, "sae.pth")
     sae = SAE.load_from_checkpoint(sae_config_path, sae_weights_path)
     sae.to(device)
