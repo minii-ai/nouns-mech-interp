@@ -54,7 +54,7 @@ class SAE(nn.Module):
             config = json.load(f)
 
         sae = SAE(**config)
-        sae.load_state_dict(torch.load(weights_path))
+        sae.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
         return sae
 
     @property
