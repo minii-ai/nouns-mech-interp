@@ -100,7 +100,7 @@ class VAE(nn.Module):
             config = json.load(f)
 
         vae = VAE(**config)
-        vae.load_state_dict(torch.load(weights_path))
+        vae.load_state_dict(torch.load(weights_path,map_location=torch.device('cpu')))
         return vae
 
     @property
