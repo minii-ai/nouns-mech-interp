@@ -11,11 +11,11 @@ sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
 import matplotlib.pyplot as plt
 from torchvision.transforms import ToPILImage
-from vae_interp.analysis import get_activations_info
-from vae_interp.dataset import NpyDataset, load_nouns_dataset
-from vae_interp.sae import SAE
-from vae_interp.utils import make_image_grid
-from vae_interp.vae import VAE
+from analysis import get_activations_info
+from dataset import NpyDataset, load_nouns_dataset
+from models.sae import SAE
+from utils import make_image_grid
+from models.vae import VAE
 
 
 def parse_args():

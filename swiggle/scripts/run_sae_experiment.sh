@@ -2,12 +2,12 @@
 
 python run_sae_experiment.py \
     --in_features=64 \
-    --expansion_factor=32 \
+    --expansion_factor=8 \
     --lr=3e-4 \
-    --lambda_l1=5e-2,1e-2,5e-3 \
+    --lambda_l1=1e-1,8e-2,4e-2 \
     --iterations=1000000 \
     --batch_size=512 \
-    --save_dir="../checkpoints/sae_experiments" \
+    --save_dir="../checkpoints/sae_experiments_longer_warmup" \
     --checkpoint_every=25000 \
     --vae_embeddings_path="../data/vae_embeddings.npy" \
     --vae_checkpoint=../weights/vae \

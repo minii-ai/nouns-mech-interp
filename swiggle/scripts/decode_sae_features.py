@@ -71,7 +71,6 @@ def main(args):
         sae, dataset, batch_size=256, top_k=1, device=device
     )
     max_activation_per_feature = activations_info.max_activation_per_feature
-    mean_activation_per_feature = activations_info.mean_activation_per_feature
 
     batch_size = 256
     num_features = sae.features.shape[0]
@@ -90,7 +89,6 @@ def main(args):
             )
 
             sparse_latent = sparse_binary_code * activations  # [b, f]
-            # sparse_latent = sparse_binary_code * 1.0  # [b, f]
             vae_latent = sae.decode(sparse_latent)  # [b, d]
             vae_latent = vae_latent.view(-1, *latent_shape)  # [b, ...latent_shape]
             decoded = vae.decode(vae_latent).cpu()  # [b, c, h, w]

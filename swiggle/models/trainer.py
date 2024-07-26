@@ -97,7 +97,7 @@ class SAETrainer:
                     break
 
                 # warmup l1
-                fraction = 0.1
+                fraction = 0.25
                 if iteration <= fraction * self.config.iterations:
                     l1_coeff = self.config.lmbda / (fraction * self.config.iterations) * iteration
                 else:
