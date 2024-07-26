@@ -96,6 +96,13 @@ class SAETrainer:
                 if iteration >= self.config.iterations:
                     break
 
+                # warmup l1
+                fraction = 0.1
+                if iteration <= fraction * self.config.iterations:
+                    l1_coeff = self.config.lmbda / (fraction * self.config.iterations) * iteration
+                else:
+                    l1_coeff = self.config.lmbda
+
                 x = batch.to(self.device)
                 model_output = model(x)
                 loss_output = sae_loss(
@@ -103,7 +110,7 @@ class SAETrainer:
                     model_output.latent,
                     x,
                     self.config.use_l1_loss,
-                    self.config.lmbda,
+                    l1_coeff,
                 )
 
                 optimizer.zero_grad()

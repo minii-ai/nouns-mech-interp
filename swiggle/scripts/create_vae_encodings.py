@@ -9,8 +9,8 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
-from vae_interp.dataset import load_nouns_dataset
-from vae_interp.vae import VAE
+from dataset import load_nouns_dataset
+from models.vae import VAE
 
 
 def parse_args():

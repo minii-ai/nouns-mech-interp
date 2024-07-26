@@ -60,13 +60,8 @@ class SAE(nn.Module):
 
         # initialization
         nn.init.kaiming_uniform_(self.W_e, mode="fan_in", nonlinearity="relu")
+        nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
 
-        # set W_d to be the transpose of W_e
-        self.W_d.data = self.W_e.data.T
-
-        # nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
-
-        self.W_d.data[:] = self.get_unit_features()
 
     @staticmethod
     def load_from_checkpoint(config_path: str, weights_path: str):
