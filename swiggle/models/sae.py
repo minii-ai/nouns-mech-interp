@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from typing import Callable
 
 import torch
 import torch.nn as nn
@@ -12,25 +13,40 @@ class SAEOutput:
     latent: torch.Tensor
 
 
-@dataclass
-class SAELossOutput:
-    loss: torch.Tensor
-    recon_loss: torch.Tensor
-    l1_loss: torch.Tensor
+def build_sae(
+    in_features: int, expansion_factor: int, activation: str = "ReLU", k: int = None
+) -> "SAE":
+    assert k is not None or activation != "TopK"
+
+    if activation == "TopK":
+        activation_fn = ACTIVATIONS[activation](k)
+    else:
+        activation_fn = ACTIVATIONS[activation]()
+
+    return SAE(
+        in_features=in_features,
+        expansion_factor=expansion_factor,
+        activation=activation_fn,
+    )
 
 
 class SAE(nn.Module):
-    """Sparse Autoencoder from Anthropic https://transformer-circuits.pub/2023/monosemantic-features#appendix-autoencoder"""
+    """
+    Sparse Autoencoder from Anthropic https://transformer-circuits.pub/2023/monosemantic-features#appendix-autoencoder
+    and OpenAI (https://openai.com/index/extracting-concepts-from-gpt-4/)
+    """
 
     def __init__(
         self,
         in_features: int,
         expansion_factor: int,
+        activation: Callable = nn.ReLU(),
         dtype: torch.dtype | None = torch.float32,
     ):
         super().__init__()
         self.in_features = in_features
         self.expansion_factor = expansion_factor
+        self.activation = activation
 
         hidden_features = in_features * expansion_factor
         self.W_e = nn.Parameter(
@@ -44,7 +60,11 @@ class SAE(nn.Module):
 
         # initialization
         nn.init.kaiming_uniform_(self.W_e, mode="fan_in", nonlinearity="relu")
-        nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
+
+        # set W_d to be the transpose of W_e
+        self.W_d.data = self.W_e.data.T
+
+        # nn.init.kaiming_uniform_(self.W_d, mode="fan_in", nonlinearity="relu")
 
         self.W_d.data[:] = self.get_unit_features()
 
@@ -53,8 +73,8 @@ class SAE(nn.Module):
         with open(config_path, "r") as f:
             config = json.load(f)
 
-        sae = SAE(**config)
-        sae.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu')))
+        sae = build_sae(**config)
+        sae.load_state_dict(torch.load(weights_path, map_location=torch.device("cpu")))
         return sae
 
     @property
@@ -62,6 +82,8 @@ class SAE(nn.Module):
         return {
             "in_features": self.in_features,
             "expansion_factor": self.expansion_factor,
+            "activation": self.activation.__class__.__name__,
+            "k": self.activation.k if hasattr(self.activation, "k") else None,
         }
 
     @property
@@ -106,7 +128,7 @@ class SAE(nn.Module):
 
     def encode(self, x: torch.Tensor):
         x_bar = x - self.b_d
-        f = F.relu(x_bar @ self.W_e + self.b_e)
+        f = self.activation(x_bar @ self.W_e + self.b_e)
 
         return f
 
@@ -120,13 +142,24 @@ class SAE(nn.Module):
 
         return SAEOutput(recon=x_hat, latent=f)
 
-    def loss(self, x: torch.Tensor, lmbda: float) -> SAELossOutput:
-        output = self.forward(x)
 
-        recon_loss = (output.recon - x).pow(2).sum(-1).mean(0)
-        l1_loss = lmbda * output.latent.abs().sum(dim=1).mean()
-        loss = recon_loss + l1_loss
+# https://github.com/openai/sparse_autoencoder/blob/main/sparse_autoencoder/model.py
+class TopK(nn.Module):
+    def __init__(self, k: int, postact_fn: Callable = nn.ReLU()) -> None:
+        super().__init__()
+        self.k = k
+        self.postact_fn = postact_fn
 
-        return SAELossOutput(
-            loss=loss, recon_loss=recon_loss.detach(), l1_loss=l1_loss.detach()
-        )
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        topk = torch.topk(x, k=self.k, dim=-1)
+        values = self.postact_fn(topk.values)
+        # make all other values 0
+        result = torch.zeros_like(x)
+        result.scatter_(-1, topk.indices, values)
+        return result
+
+
+ACTIVATIONS = {
+    "ReLU": nn.ReLU,
+    "TopK": TopK,
+}

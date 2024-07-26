@@ -13,6 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms
 from tqdm import tqdm
 
+from .loss import sae_loss
 from .sae import SAE
 from .vae import VAE
 
@@ -21,6 +22,7 @@ from .vae import VAE
 class SAETrainConfig:
     lr: float
     iterations: int
+    use_l1_loss: bool
     lmbda: float
 
 
@@ -65,7 +67,9 @@ class SAETrainer:
         # save train config
         train_config_path = os.path.join(self.save_dir, "train_config.json")
         with open(train_config_path, "w") as f:
-            json.dump(asdict(self.config), f)
+            json.dump(
+                {**asdict(self.config), "batch_size": self.dataloader.batch_size}, f
+            )
 
         model = self.model
         model.to(self.device)
@@ -73,8 +77,6 @@ class SAETrainer:
         # initialize pre-encoder bias of sae to be the median of the dataset (Anthropic)
         median = self.get_median_of_dataset().to(self.device)
         model.set_preencoder_bias(median)
-
-        print(median)
 
         # save model config
         sae_config_path = os.path.join(self.save_dir, "config.json")
@@ -95,26 +97,35 @@ class SAETrainer:
                     break
 
                 x = batch.to(self.device)
-                loss_output = model.loss(x, self.config.lmbda)
+                model_output = model(x)
+                loss_output = sae_loss(
+                    model_output.recon,
+                    model_output.latent,
+                    x,
+                    self.config.use_l1_loss,
+                    self.config.lmbda,
+                )
 
                 optimizer.zero_grad()
-                loss_output.loss.backward()
+                loss_output["loss"].backward()
                 model.set_features_and_grad_to_unit_norm()
                 optimizer.step()
 
                 # log losses to tensorboard
-                self.writer.add_scalar("loss", loss_output.loss.item(), iteration)
+                self.writer.add_scalar("loss", loss_output["loss"].item(), iteration)
                 self.writer.add_scalar(
-                    "recon_loss", loss_output.recon_loss.item(), iteration
+                    "recon_loss", loss_output["recon_loss"].item(), iteration
                 )
-                self.writer.add_scalar("l1_loss", loss_output.l1_loss.item(), iteration)
+                self.writer.add_scalar(
+                    "l1_loss", loss_output["l1_loss"].item(), iteration
+                )
 
                 pbar.update(1)
                 pbar.set_postfix(
                     {
-                        "loss": f"{loss_output.loss.item():.4f}",
-                        "recon_loss": f"{loss_output.recon_loss.item():.4f}",
-                        "l1_loss": f"{loss_output.l1_loss.item():.4f}",
+                        "loss": f"{loss_output['loss'].item():.4f}",
+                        "recon_loss": f"{loss_output['recon_loss'].item():.4f}",
+                        "l1_loss": f"{loss_output['l1_loss'].item():.4f}",
                     }
                 )
                 iteration += 1

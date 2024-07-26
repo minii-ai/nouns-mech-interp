@@ -4,13 +4,12 @@ from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from models import SAE
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from tensorboard.backend.event_processing import event_accumulator
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from swiggle.models import SAE
 
 
 class SAEExperimentsResults:

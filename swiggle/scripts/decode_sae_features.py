@@ -9,10 +9,9 @@ from tqdm import tqdm
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
-from vae_interp.analysis import get_activations_info
-from vae_interp.dataset import NpyDataset
-from vae_interp.sae import SAE
-from vae_interp.vae import VAE
+from analysis import get_activations_info
+from dataset import NpyDataset
+from models import SAE, VAE
 
 
 def parse_args():
@@ -72,6 +71,7 @@ def main(args):
         sae, dataset, batch_size=256, top_k=1, device=device
     )
     max_activation_per_feature = activations_info.max_activation_per_feature
+    mean_activation_per_feature = activations_info.mean_activation_per_feature
 
     batch_size = 256
     num_features = sae.features.shape[0]
@@ -90,6 +90,7 @@ def main(args):
             )
 
             sparse_latent = sparse_binary_code * activations  # [b, f]
+            # sparse_latent = sparse_binary_code * 1.0  # [b, f]
             vae_latent = sae.decode(sparse_latent)  # [b, d]
             vae_latent = vae_latent.view(-1, *latent_shape)  # [b, ...latent_shape]
             decoded = vae.decode(vae_latent).cpu()  # [b, c, h, w]

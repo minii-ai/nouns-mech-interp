@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../"))
 
 from dataset import NpyDataset
-from models import SAE, VAE, SAETrainConfig, SAETrainer
+from models import VAE, SAETrainConfig, SAETrainer, build_sae
 
 
 def parse_args():
@@ -24,6 +24,10 @@ def parse_args():
         required=True,
         help="Expansion factor for hidden features",
     )
+    parser.add_argument(
+        "--activation", type=str, default="ReLU", help="Activation function"
+    )
+    parser.add_argument("--k", type=int, default=10, help="TopK activation parameter")
 
     # Training parameters
     parser.add_argument(
@@ -105,17 +109,21 @@ def main(args):
 
     latent_shape = [int(x) for x in args.latent_shape.split(",")]
 
-    sae = SAE(
+    sae = build_sae(
         in_features=args.in_features,
         expansion_factor=args.expansion_factor,
-        dtype=torch.float32,
+        activation=args.activation,
+        k=args.k,
     )
 
+    use_l1_loss = args.activation != "TopK"
     train_config = SAETrainConfig(
         lr=args.lr,
         iterations=args.iterations,
+        use_l1_loss=use_l1_loss,
         lmbda=args.lambda_l1,
     )
+
     trainer = SAETrainer(
         model=sae,
         vae=vae,

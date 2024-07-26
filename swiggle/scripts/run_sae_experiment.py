@@ -24,6 +24,7 @@ def parse_args():
         required=True,
         help="Expansion factor for hidden features",
     )
+    parser.add_argument("--activation", default="ReLU", help="Activation function")
 
     # Training parameters
     parser.add_argument(
@@ -37,6 +38,9 @@ def parse_args():
     )
     parser.add_argument(
         "--batch_size", type=int, default=32, help="Batch size (default: 32)"
+    )
+    parser.add_argument(
+        "--k", type=str, default="10", help="List of top k activation parameter"
     )
     parser.add_argument(
         "--lambda_l1",
@@ -110,16 +114,27 @@ class ExperimentConfig:
     vae_embeddings_path: str
     vae_checkpoint: str
     latent_shape: str
+    activation: str
+    k: int | None
     seed: int
 
 
 async def experiment_worker(queue: asyncio.Queue):
     while True:
         config = await queue.get()
-        print(f"[INFO] Running Experiment | lr={config.lr}, l1={config.l1_weight}")
+
+        if config.k is not None:
+            print(f"[INFO] Running Experiment | lr={config.lr}, k={config.k}")
+        else:
+            print(f"[INFO] Running Experiment | lr={config.lr}, l1={config.l1_weight}")
+
         await run_experiment(config)
         queue.task_done()
-        print(f"[INFO] Experiment Done | lr={config.lr}, l1={config.l1_weight}")
+
+        if config.k is not None:
+            print(f"[INFO] Experiment Done | lr={config.lr}, k={config.k}")
+        else:
+            print(f"[INFO] Experiment Done | lr={config.lr}, l1={config.l1_weight}")
 
 
 def create_command(script: str, args: dict) -> str:
@@ -129,7 +144,8 @@ def create_command(script: str, args: dict) -> str:
             if value:
                 command_parts.append(f"--{key}")
         else:
-            command_parts.append(f"--{key}={value}")
+            if value:
+                command_parts.append(f"--{key}={value}")
     return " ".join(command_parts)
 
 
@@ -148,6 +164,8 @@ async def run_experiment(config: ExperimentConfig):
             "vae_checkpoint": config.vae_checkpoint,
             "checkpoint_every": config.checkpoint_every,
             "latent_shape": config.latent_shape,
+            "activation": config.activation,
+            "k": config.k,
             "seed": config.seed,
         },
     )
@@ -166,7 +184,14 @@ def scientific_notation(num):
 async def main(args):
     lrs = [float(lr) for lr in args.lr.split(",")]
     l1_weights = [float(l1_weight) for l1_weight in args.lambda_l1.split(",")]
-    configs = list(itertools.product(lrs, l1_weights))
+    ks = [int(k) for k in args.k.split(",")]
+
+    use_topk = args.activation == "TopK"
+
+    if use_topk:
+        configs = list(itertools.product(lrs, ks))
+    else:
+        configs = list(itertools.product(lrs, l1_weights))
 
     print(configs)
 
@@ -176,14 +201,21 @@ async def main(args):
     queue = asyncio.Queue()
     for config in configs:
         lr_label = scientific_notation(config[0])
-        l1_label = scientific_notation(config[1])
 
-        experiment_dir = os.path.join(args.save_dir, f"lr={lr_label}_l1={l1_label}")
+        if args.activation == "TopK":
+            k_label = config[1]
+            experiment_dir = os.path.join(args.save_dir, f"lr={lr_label}_k={k_label}")
+        else:
+            l1_label = scientific_notation(config[1])
+            experiment_dir = os.path.join(args.save_dir, f"lr={lr_label}_l1={l1_label}")
+
+        l1_weight = 0 if use_topk else config[1]
+        k = config[1] if use_topk else None
         experiment_config = ExperimentConfig(
             in_features=args.in_features,
             expansion_factor=args.expansion_factor,
             lr=config[0],
-            l1_weight=config[1],
+            l1_weight=l1_weight,
             batch_size=args.batch_size,
             iterations=args.iterations,
             save_dir=experiment_dir,
@@ -191,6 +223,8 @@ async def main(args):
             vae_checkpoint=args.vae_checkpoint,
             checkpoint_every=args.checkpoint_every,
             latent_shape=args.latent_shape,
+            activation=args.activation,
+            k=k,
             seed=args.seed,
         )
         await queue.put(experiment_config)
