@@ -52,7 +52,7 @@ class FeaturesControls:
         features_indices = torch.tensor(list(new_features.keys()), dtype=torch.int32)
         activations = torch.tensor(list(new_features.values()), dtype=torch.float32)
 
-        # features[features_indices] = activations
+        features[features_indices] = activations
         features = features.view(1, -1)
         latent = self.sae.decode(features)
         latent = latent.view(-1, *self.latent_shape)

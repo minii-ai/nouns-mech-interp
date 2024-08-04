@@ -48,6 +48,8 @@ def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    print(device)
+
     # load vae
     vae = VAE.load_from_dir(args.vae_checkpoint)
     vae.eval()
@@ -68,7 +70,7 @@ def main(args):
     to_image = ToPILImage()
 
     activations_info = get_activations_info(
-        sae, vae_embeddings_dataset, batch_size=256, top_k=args.k, device="cuda"
+        sae, vae_embeddings_dataset, batch_size=256, top_k=args.k, device=device
     )
 
     for feature_idx in tqdm(range(num_features)):
