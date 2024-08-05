@@ -36,10 +36,20 @@ if __name__ == '__main__':
 
         bucket = ReconstructedImageFeatureBucket(client)
 
-        for id in range(0, num_features):
-            origin = f'./{directory}/{id}.png'
+        for id in range(510, num_features):
+            origin = f'{directory}/{id}.png'
             destination = f'./{id}.png'
-            bucket.upload(origin, destination)
+            try: 
+                bucket.upload(origin, destination)
+                print(f'Uploaded image {id}')
+            except Exception as e:
+                if e.args[0]['error'] == 'Duplicate':
+                    print(f'Image {id} already exists.')
+                    continue
+                else:
+                    raise Exception(f'Something went wrong when uploading reconstructed image {id}')
+        print('All images have been uploaded')
+    upload_reconstructed_images_from_dir('./sae_decoded_features')
 
 
         

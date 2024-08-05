@@ -3,30 +3,45 @@ from typing import List
 from .types import Feature, BaseFeature, SerializedFeature, SupabaseResponseFeature
 import json
 import ast
+import numpy as np
 
+from dataclasses import dataclass
+from typing import List, Union
+import json
 
-def serializer(obj: Feature) -> SerializedFeature:
-    if isinstance(obj, dict):
-        return {k: serializer(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        if all(isinstance(item, int) for item in obj):
-            return obj
-        else:
-            return [serializer(item) for item in obj]
-    elif hasattr(obj, '__dict__'):
-        return serializer(obj.__dict__)
-    else:
-        return obj
-    
 def deserializer(obj: SupabaseResponseFeature) -> Feature:
-        vector_attrs = ['description_embedding'] #TODO: Move vector and pca to vector_attrs
-        json_attrs = ['top_k_images', 'similar_features', 'activations', 'vector', 'pca',]
+        vector_attrs = ['description_embedding', 'vector', 'pca'] #TODO: Move vector and pca to vector_attrs
         result = {}
         for k,v in obj.items():
             if k in vector_attrs: result[k] = ast.literal_eval(v)
-            elif k in json_attrs: result[k] = json.loads(v)
             else: result[k] = v
         return result 
+
+def create_denisity_histogram(activations, num_buckets=20):
+        mean = np.mean(list(activations.values()))
+        std = np.std(list(activations.values()))
+        # Define the range for the buckets
+        min_activation = mean - 2 * std
+        max_activation = mean + 2 * std
+        # Initialize the histogram buckets
+        bucket_width = (max_activation - min_activation) / num_buckets
+        buckets = [
+            {"activation": min_activation + i * bucket_width, "count": 0}
+            for i in range(num_buckets)
+        ]
+        # Iterate through activations and count them in the respective buckets
+        for _, activation in activations.items():
+            bucket_index = int((activation - min_activation) / bucket_width)
+            if 0 <= bucket_index < num_buckets:
+                buckets[bucket_index]["count"] += 1
+            elif bucket_index >= num_buckets:
+                buckets[-1]["count"] += 1
+        return {
+            "buckets": buckets,
+            "mean": mean,
+            "std": std,
+            "bucket_width": bucket_width,
+        }
 
 class FeatureTable():
     def __init__(self, client: Client):
@@ -34,8 +49,7 @@ class FeatureTable():
         self.table = client.table("NounsFeature")
 
     def add(self, feature: Feature) -> None:
-        serialized_feature:SerializedFeature = serializer(feature)
-        self.table.insert(serialized_feature).execute()
+        self.table.insert(feature).execute()
         print(f'Feature {feature["id"]} was successfully added')
 
     def get(self, feature_id:int) -> Feature:
@@ -66,16 +80,23 @@ if __name__ == '__main__':
         text_embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
         with open(file_path, 'r') as file:
-            features = json.load(file)
+            featuresObj = json.load(file)
+        features = featuresObj["features"]
         table = FeatureTable(client)
 
         for feature in features:
             description = feature["description"]
             if description:
-                feature["description_embedding"] = text_embedder(feature["description"])
-            table.add(feature)
-            print(f'Feature {feature["id"]} has been uploaded')
+                feature["description_embedding"] = list(map(lambda x: float(x), text_embedder.encode(feature["description"])))
+                feature["activations"] = create_denisity_histogram(feature["activations"])
+            try:
+                table.add(feature)
+            except Exception as e:
+                print(f'Feature {feature["id"]} already exists.')
+                continue
+
         print(f'All features have been uploaded')
+    add_features_from_json("./features.json")
 
     
       
