@@ -52,8 +52,6 @@ class FeaturesService:
         top_k_features = [feature["id"] for feature, _ in similarities[:k]]
         return top_k_features
 
-            
-
     def get_feature(self, feature_id:int):
         feature = self.features_db.get(feature_id)
         feature['image'] = self.feature_reconstructed_db.get(feature_id)
