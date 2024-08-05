@@ -34,38 +34,21 @@ const featuresPCA: DataPoint[] = [
 
 export default function Home() {
   const router = useRouter();
-  const [selectedFeature, setSelectedFeature] = useState<
-    DataPoint | undefined
-  >();
+  const [selectedFeatureId, setSelectedFeatureId] = useState<number | null>(
+    null
+  );
 
   const { data: features = [] } = useGetFeatures();
 
   console.log({ features });
 
-  const handleSelectedFeature = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
-
-    setSelectedFeature(selectedFeature);
-  };
-
-  const handleGotoFeatures = () => {
-    router.push(`/features-explorer/null`);
-  };
-
   const handleMoreInfo = (id: number) => {
-    const selectedFeature = featuresPCA.find(
-      (feature: any) => feature.id === id
-    );
-
-    setSelectedFeature(selectedFeature);
     router.push(`/features-explorer/${id}`);
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="w-full flex flex-col items-center justify-center">
+    <div className="min-h-screen h-screen bg-white w-full">
+      {/* <div className="w-full flex flex-col items-center justify-center">
         <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
           <p className="cursor-pointer" onClick={() => router.push("/")}>
             Swiggle
@@ -76,7 +59,7 @@ export default function Home() {
           <h1 className="text-2xl font-medium text-gray-900">
             Explore Learned Features
           </h1>
-          <p className="text-sm mt-5 text-gray-500">
+          <p className="text-base mt-5">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
             eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
             ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
@@ -92,18 +75,16 @@ export default function Home() {
             Feature Details →
           </button>
         </div>
-      </div>
-      <div className="flex flex-row mt-10 bg-[#f9fafb] py-4 space-x-3">
+      </div> */}
+      <div className="flex w-full h-full">
         <PCAPlot
-          data={featuresPCA}
-          onSelect={handleSelectedFeature}
-          selectedFeature={selectedFeature}
+          onSelect={(featureId) => setSelectedFeatureId(featureId)}
           features={features}
         />
         <FeaturesTable
           features={features}
           onClick={handleMoreInfo}
-          selectedFeature={selectedFeature}
+          selectedFeatureId={selectedFeatureId}
         />
       </div>
     </div>
