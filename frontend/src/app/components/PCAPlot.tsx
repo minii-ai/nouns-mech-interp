@@ -44,15 +44,13 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
         axisRight={null}
         axisBottom={null}
         axisLeft={null}
-        // onClick={(node) => onSelect(node.data.data.id)}
-        onMouseLeave={() => onSelect(null)}
-        onMouseMove={(node) => onSelect(node.data.data.id)}
+        onClick={(node) => onSelect(node.data.data.id)}
         tooltip={({ node }) => {
           return (
             <div className="bg-white p-2 rounded drop-shadow-lg flex flex-col">
-              <span className="text-black text-sm">{node.data.data.id}</span>
+              <span className="text-black text-sm">{node?.data?.data?.id}</span>
               <span className="text-black text-sm">
-                {node.data.data.description}
+                {node?.data?.data?.description}
               </span>
             </div>
           );
