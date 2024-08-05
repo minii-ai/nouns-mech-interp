@@ -11,6 +11,7 @@ import FeatureCard from "../../components/Feature";
 import { useParams, useRouter } from "next/navigation";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { useGetImageDataById } from "@/hooks/images";
+import { useGetFeatureById } from "@/hooks/features";
 // import { Rotate } from "tabler-icons-react";
 
 interface Feature {
@@ -121,6 +122,7 @@ function ImagePlayground() {
   const [modifiedImageBase64, setModifiedImageBase64] = useState<string | null>(
     null
   );
+  const [featuresWithImages, setFeaturesWithImages] = useState<any[]>([]);
   // const [loadingOriginalImage, setLoadingOriginalImage] = useState(false);
   // const [loadingOriginalFeatures, setLoadingOriginalFeatures] = useState(true);
   // const [originalImage, setOriginalImage] = useState<any>(null);
@@ -164,6 +166,64 @@ function ImagePlayground() {
       });
 
       setFeatures(featuresData);
+    }
+  }, [imageData]);
+
+  useEffect(() => {
+    if (imageData) {
+      console.log("Getting images");
+      // Fetch image URLs for each feature
+      const fetchFeatureImages = async () => {
+        try {
+          const featureImagePromises = imageData.features.map(
+            async (feature) => {
+              try {
+                const res = await fetch(
+                  `http://localhost:8000/api/features/${feature.feature_id}/image`
+                );
+                console.log("Response:", res); // Log the response object
+
+                if (!res.ok) {
+                  throw new Error(`HTTP error! status: ${res.status}`);
+                }
+
+                const contentType = res.headers.get("Content-Type");
+                if (contentType && contentType.includes("image/png")) {
+                  const blob = await res.blob();
+                  const imageUrl = URL.createObjectURL(blob);
+                  console.log("Image URL:", imageUrl); // Log the image URL
+                  return {
+                    ...feature,
+                    imageUrl, // Use the created URL for the image
+                  };
+                } else {
+                  throw new Error("Expected image/png response");
+                }
+              } catch (error) {
+                console.error(
+                  `Error fetching image for feature_id ${feature.feature_id}:`,
+                  error
+                );
+                return null;
+              }
+            }
+          );
+
+          const featuresWithImagesData = await Promise.all(
+            featureImagePromises
+          );
+          // Filter out any null values that may have occurred due to errors
+          const filteredFeatures = featuresWithImagesData.filter(
+            (feature) => feature !== null
+          );
+          setFeaturesWithImages(filteredFeatures);
+          console.log("Features with Images:", filteredFeatures);
+        } catch (error) {
+          console.error("Error in fetching feature images:", error);
+        }
+      };
+
+      fetchFeatureImages();
     }
   }, [imageData]);
 
@@ -312,7 +372,7 @@ function ImagePlayground() {
   //   const fetchFeaturesById = async () => {
   //     setLoadingOriginalFeatures(true);
   //     try {
-  //       const response = await fetcher(`/api/features/?id=${id}`);
+  //       const response = await fetcher(`/api/features/?id=${id}/image`);
   //       console.log(response.data);
   //       setOriginalFeatures(response.data);
   //       setLearnedFeatures(response.data);
@@ -329,6 +389,8 @@ function ImagePlayground() {
   //   fetchFeaturesById();
   // }, []);
 
+  console.log(imageData);
+
   return (
     <div className="h-screen bg-white">
       <div className="w-full flex flex-col items-center justify-center mb-6">
@@ -339,13 +401,18 @@ function ImagePlayground() {
           <p className="text-gray-500">Image Playground.</p>
         </div>
       </div>
-      {imageData && (
+      {imageData && featuresWithImages.length > 0 && (
         <div className="flex justify-between mb-8 px-[100px] h-full">
           <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center h-full">
             <div className="relative h-[360px] w-[360px] flex items-center justify-center mb-6">
-              <img
+              {/* <img
                 src={formatBase64Image(modifiedImageBase64 || imageData.base64)}
                 className="h-[360px] w-[360px] rounded-lg border border-gray-200"
+              /> */}
+              <img
+                src={modifiedImageBase64 ? modifiedImageBase64 : imageData.url}
+                className="h-[300px] w-[300px] rounded-lg border border-gray-200 object-cover"
+                // style={{ imageRendering: "crisp-edges" }}
               />
 
               {/* <img
@@ -360,39 +427,41 @@ function ImagePlayground() {
           </div>
           <div className="w-1/2 pl-[50px] flex flex-col h-full">
             <div
-              className="flex flex-row cursor-pointer items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
-              onClick={() => console.log("adding feature")}
-            >
-              <img
+              className="flex flex-row cursor-default items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
+              onClick={() => console.log("adding feature")}>
+              {/* <img
                 src={formatBase64Image(imageData.base64)}
                 className="h-[44px] w-[44px] rounded-md mr-2"
+              /> */}
+              <img
+                className="h-[44px] w-[44px] rounded-md mr-2"
+                src={imageData.url}
               />
               <p>
-                {/* a pixel art character with square black glasses, a hotdog-shaped
-                head and a peachy-colored body on a warm background */}
-                {imageData.text}
+                a pixel art character with square black glasses, a hotdog-shaped
+                head and a peachy-colored body on a warm background
+                {/* {imageData.text} */}
               </p>
             </div>
             <p className="mb-6 mt-6">
               Learned Features: {imageData.features.length}
             </p>
-            {imageData.features.length > 0 && (
+            {featuresWithImages.length > 0 && (
               <div className="overflow-y-scroll h-1/2">
-                {imageData.features.map((feature) => {
+                {featuresWithImages.map((feature) => {
                   const displayActivation = features[feature.feature_id] || 0;
 
                   return (
                     <div
-                      key={feature.id}
+                      key={feature.feature_id}
                       className="mb-4"
-                      onMouseEnter={() => setHoveredId(feature.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                    >
+                      onMouseEnter={() => setHoveredId(feature.feature_id)}
+                      onMouseLeave={() => setHoveredId(null)}>
                       <div className="flex flex-row items-center justify-between">
                         <div>
                           <div className="flex flex-row items-center space-x-2 mb-3">
                             <img
-                              src={feature.image}
+                              src={feature.imageUrl}
                               className="h-[36px] w-[36px] rounded-md"
                             />
                             <p className="text-lg">#{feature.feature_id}</p>
@@ -416,15 +485,14 @@ function ImagePlayground() {
                                   Number(e.target.value)
                                 )
                               }
-                              className="h-2 bg-gray-200 rounded-lg appearance-none accent-orange-700 cursor-pointer ml-6 mr-3 w-[200px]"
+                              // className="h-2 bg-gray-200 rounded-lg appearance-none accent-[#3B81F6] cursor-pointer ml-6 mr-3 w-[200px]"
                             />
                           </div>
                         </div>
-                        {hoveredId === feature.id && (
+                        {hoveredId === feature.feature_id && (
                           <button
-                            onClick={() => handleMoreInfo(feature.id)}
-                            className="transition-opacity duration-200 ml-4 underline text-orange-800"
-                          >
+                            onClick={() => handleMoreInfo(feature.feature_id)}
+                            className="transition-opacity duration-200 ml-4 underline text-[#3B81F6]">
                             More Info
                           </button>
                         )}
@@ -442,8 +510,7 @@ function ImagePlayground() {
               {modifiedFeatures.map((feature) => (
                 <div
                   key={feature.id}
-                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between"
-                >
+                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between">
                   <div className="flex flex-row items-center">
                     <img
                       src={newUrl}

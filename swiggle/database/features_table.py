@@ -39,18 +39,43 @@ class FeatureTable():
         print(f'Feature {feature["id"]} was successfully added')
 
     def get(self, feature_id:int) -> Feature:
-        features = (self.table.select("id", "description", "pca", "top_k_images", "activations", "activation_density").eq("id", feature_id).execute().data)
+        features = (self.table.select("id", "description", "pca", "top_k_images", "activations", "similar_features", "activation_density").eq("id", feature_id).execute().data)
         feature_exists = len(features) > 0; 
         if not feature_exists: return None
         return deserializer(features[0])
     
     def get_all(self) -> List[BaseFeature]:
-        features = self.table.select("id", "description", "pca").execute().data
+        features = self.table.select("id", "description", "pca", "description_embedding").execute().data
         result = [(deserializer(feature)) for feature in features]
         return result
 
 
 if __name__ == '__main__':
-    pass
+
+    def add_features_from_json(file_path):
+        import os
+        from dotenv import load_dotenv
+        from supabase import create_client
+        from sentence_transformers import SentenceTransformer
+
+        load_dotenv()
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+        client = create_client(url, key)
+
+        text_embedder = SentenceTransformer("all-MiniLM-L6-v2")
+
+        with open(file_path, 'r') as file:
+            features = json.load(file)
+        table = FeatureTable(client)
+
+        for feature in features:
+            description = feature["description"]
+            if description:
+                feature["description_embedding"] = text_embedder(feature["description"])
+            table.add(feature)
+            print(f'Feature {feature["id"]} has been uploaded')
+        print(f'All features have been uploaded')
+
     
       

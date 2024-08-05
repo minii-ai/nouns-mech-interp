@@ -74,6 +74,10 @@ function FeaturesExplorer() {
   //     feature.id.toString().includes(searchTerm.toLowerCase())
   // );
 
+  const handleGotoPlayground = (id = null) => {
+    router.push(`/image-playground/${feature.top_k_images[0].image_id}`);
+  };
+
   return (
     <div className="min-h-screen bg-white py-4">
       <div className="w-full flex flex-col items-center justify-center mb-6">
@@ -85,7 +89,7 @@ function FeaturesExplorer() {
         </div>
         <div className="max-w-2xl mx-auto py-6 mt-[64px]">
           <h1 className="text-2xl font-medium text-gray-900">
-            Explore Learned Features
+            Learned Feature
           </h1>
           <p className="text-sm mt-5 text-gray-500">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
@@ -96,6 +100,11 @@ function FeaturesExplorer() {
             pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
             culpa qui officia deserunt mollit anim id est laborum.
           </p>
+          <button
+            className="mt-5 px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
+            onClick={() => handleGotoPlayground()}>
+            Explore an image with this feature →
+          </button>
         </div>
       </div>
       <div className="h-full p-4">

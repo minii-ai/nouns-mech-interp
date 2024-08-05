@@ -1,6 +1,6 @@
 from supabase import Client
 from .client import create_supabase_client
-
+from sentence_transformers import SentenceTransformer
 
 class NounsImagesBucket():
     def __init__(self, client: Client):
@@ -26,14 +26,18 @@ class NounsImagesBucket():
 
 if __name__ == '__main__':
     from datasets import load_dataset
+    from PIL import Image
     import os
     import io
 
+    # Load the Hugging Face dataset
     dataset = load_dataset('m1guelpf/nouns', split="train")
 
+    # Initialize Supabase client and image bucket
     client = create_supabase_client()
     image_bucket = NounsImagesBucket(client)
 
+    # Create a local directory to store downloaded images
     local_image_dir = '../temp'
     os.makedirs(local_image_dir, exist_ok=True)
 
@@ -43,14 +47,23 @@ if __name__ == '__main__':
         img_byte_arr.seek(0)
         return img_byte_arr.getvalue()
 
+    def resize_image(image: Image, max_size=(128, 128)):
+        return image.resize(max_size, Image.LANCZOS)
 
     for index, data in enumerate(dataset):
-        if index <= 1112: continue
+        if index <= 2835: continue
 
-        image_content = pil_image_to_bytes(data['image'])
+        # Convert dataset image to PIL image
+        pil_image = data['image']
         
+        # Resize the image
+        resized_image = resize_image(pil_image)
+        
+        # Convert the resized image to bytes
+        image_content = pil_image_to_bytes(resized_image)
+        
+        # Save the resized image locally (optional)
         local_image_path = os.path.join(local_image_dir, f'{index}.png')
-        
         with open(local_image_path, 'wb') as f:
             f.write(image_content)
         
@@ -59,9 +72,11 @@ if __name__ == '__main__':
         
         # # Upload the image to Supabase
         # image_bucket.upload(local_image_path, destination_filepath)
-        # print(f"image {index} has been uploaded")
+        print(f"Image {index} has been uploaded")
 
-    print("All images have been downloaded and uploaded to Supabase.")
+    print("All images have been resized, downloaded, and uploaded to Supabase.")
+
+
 
 
 
