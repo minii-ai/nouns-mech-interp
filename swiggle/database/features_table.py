@@ -39,7 +39,7 @@ class FeatureTable():
         print(f'Feature {feature["id"]} was successfully added')
 
     def get(self, feature_id:int) -> Feature:
-        features = (self.table.select("id", "description", "pca", "top_k_images", "activations", "similar_features" "activation_density").eq("id", feature_id).execute().data)
+        features = (self.table.select("id", "description", "pca", "top_k_images", "activations", "similar_features", "activation_density").eq("id", feature_id).execute().data)
         feature_exists = len(features) > 0; 
         if not feature_exists: return None
         return deserializer(features[0])
