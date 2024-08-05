@@ -47,7 +47,7 @@ if __name__ == '__main__':
         img_byte_arr.seek(0)
         return img_byte_arr.getvalue()
 
-    def resize_image(image: Image, max_size=(64, 64)):
+    def resize_image(image: Image, max_size=(128, 128)):
         return image.resize(max_size, Image.LANCZOS)
 
     for index, data in enumerate(dataset):

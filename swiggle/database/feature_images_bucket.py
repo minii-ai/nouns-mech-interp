@@ -24,5 +24,23 @@ class ReconstructedImageFeatureBucket():
         return response
 
 if __name__ == '__main__':
-    pass
+    def upload_reconstructed_images_from_dir(directory, num_features=2048):
+        import os
+        from dotenv import load_dotenv
+        from supabase import create_client
+
+        load_dotenv()
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_KEY")
+        client = create_client(url, key)
+
+        bucket = ReconstructedImageFeatureBucket(client)
+
+        for id in range(0, num_features):
+            origin = f'./{directory}/{id}.png'
+            destination = f'./{id}.png'
+            bucket.upload(origin, destination)
+
+
+        
     

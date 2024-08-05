@@ -8,7 +8,7 @@ from swiggle.models import SAE, VAE, FeaturesControl
 from ..database import create_supabase_client, ReconstructedImageFeatureBucket, FeatureTable, NounsImagesBucket
 from ..dataset import load_nouns_dataset
 
-from .features import FeaturesService
+from .features_service import FeaturesService
 from sentence_transformers import SentenceTransformer
 
 
