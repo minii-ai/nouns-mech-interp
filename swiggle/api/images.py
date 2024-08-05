@@ -57,13 +57,14 @@ async def get_image(image_id: int, request:Request):
     """
     Modifies Image based on Natural Language Text
     """
-    body = await request.json()
-    text = body["text"]
+    # body = await request.json()
+    text = "Modify to Shark"# body["text"]
     feature_ids = features_service.get_top_k_similar_features(text)
 
     features_dict = {}
     for feature_id in feature_ids:
-        features_dict[feature_id] = 2
+        features_dict[feature_id] = 5
+        continue
 
     modified_image = features_service.modify_image(image_id, features_dict)
     modified_image_bytes = pil_image_to_bytes(modified_image)

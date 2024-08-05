@@ -45,7 +45,7 @@ class FeatureTable():
         return deserializer(features[0])
     
     def get_all(self) -> List[BaseFeature]:
-        features = self.table.select("id", "description", "pca").execute().data
+        features = self.table.select("id", "description", "pca", "description_embedding").execute().data
         result = [(deserializer(feature)) for feature in features]
         return result
 
