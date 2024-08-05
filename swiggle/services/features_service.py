@@ -9,6 +9,9 @@ from swiggle.models import SAE, VAE, FeaturesControl
 from ..database import FeatureTable, Feature, BaseFeature, ReconstructedImageFeatureBucket, NounsImagesBucket
 from ..dataset import NounsDataset
 from typing import List
+from sentence_transformers import SentenceTransformer
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 class Feature(TypedDict):
     feature_id: int
@@ -21,7 +24,8 @@ class FeaturesService:
             image_db: NounsImagesBucket,
             features_db: FeatureTable,
             feature_reconstructed_db: ReconstructedImageFeatureBucket,
-            features_control: FeaturesControl
+            features_control: FeaturesControl,
+            text_embedder: SentenceTransformer
             ):
         self.image_db = image_db
         self.features_db = features_db
@@ -29,7 +33,7 @@ class FeaturesService:
         self.features_control = features_control
         self.nouns_dataset = nouns_dataset
         self.num_images = 50000
-
+        self.text_embedder = text_embedder
 
     def get_image(self, image_id:int):
         return self.image_db.get(image_id)
@@ -37,8 +41,18 @@ class FeaturesService:
     def is_valid_image(self, image_id:int):
         return 0 <= image_id < self.num_images
     
-    def get_top_k_similar_features():
-        pass
+    def get_top_k_similar_features(self, text: str, k: int = 5):
+        text_embedding = self.text_embedder.encode(text)
+        similarities = []
+        for feature in self.features_db.get_all():
+            feature_embedding = feature["description_embedding"]
+            similarity = cosine_similarity([text_embedding], [feature_embedding])[0][0]
+            similarities.append((feature, similarity))
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        top_k_features = [feature["id"] for feature, _ in similarities[:k]]
+        return top_k_features
+
+            
 
     def get_feature(self, feature_id:int):
         feature = self.features_db.get(feature_id)

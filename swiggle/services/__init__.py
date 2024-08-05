@@ -8,7 +8,8 @@ from swiggle.models import SAE, VAE, FeaturesControl
 from ..database import create_supabase_client, ReconstructedImageFeatureBucket, FeatureTable, NounsImagesBucket
 from ..dataset import load_nouns_dataset
 
-from .features import FeaturesService
+from .features_service import FeaturesService
+from sentence_transformers import SentenceTransformer
 
 
 # load supabase client
@@ -24,6 +25,8 @@ image_db = NounsImagesBucket(supabase_client)
 
 # load datase
 nouns_dataset = load_nouns_dataset(image_size=64, normalize=True)
+
+text_embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 # load sae
@@ -46,4 +49,5 @@ features_service = FeaturesService(
     feature_reconstructed_db=image_feature_bucket, 
     features_control=features_control,
     nouns_dataset=nouns_dataset,
+    text_embedder=text_embedder
 )
