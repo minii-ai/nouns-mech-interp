@@ -23,7 +23,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   const featureRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
   const filteredFeatures = features.filter((feature: any) =>
-    feature.description.toLowerCase().includes(searchTerm.toLowerCase())
+    feature.description?.toLowerCase()?.includes(searchTerm?.toLowerCase())
   );
 
   useEffect(() => {
