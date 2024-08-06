@@ -86,8 +86,15 @@ const modifyFeatures = async (imageId: number, features: object) => {
     body: JSON.stringify(body),
   });
 
-  const json = await res.json();
-  return json.base64;
+  // console.log(res);
+
+  const blob = await res.blob();
+  const imageUrl = URL.createObjectURL(blob);
+  console.log("Image URL:", imageUrl); // Log the image URL
+
+  // const json = await res.json();
+  // return json.base64;
+  return imageUrl;
 };
 
 const modifyImageWithText = async (imageId: number, text: string) => {
@@ -411,7 +418,7 @@ function ImagePlayground() {
               /> */}
               <img
                 src={modifiedImageBase64 ? modifiedImageBase64 : imageData.url}
-                className="h-[300px] w-[300px] rounded-lg border border-gray-200 object-cover"
+                className="h-[128px] w-[128px] rounded-lg border border-gray-200 object-cover"
                 // style={{ imageRendering: "crisp-edges" }}
               />
 
@@ -428,7 +435,8 @@ function ImagePlayground() {
           <div className="w-1/2 pl-[50px] flex flex-col h-full">
             <div
               className="flex flex-row cursor-default items-center px-2 py-2 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
-              onClick={() => console.log("adding feature")}>
+              onClick={() => console.log("adding feature")}
+            >
               {/* <img
                 src={formatBase64Image(imageData.base64)}
                 className="h-[44px] w-[44px] rounded-md mr-2"
@@ -456,7 +464,8 @@ function ImagePlayground() {
                       key={feature.feature_id}
                       className="mb-4"
                       onMouseEnter={() => setHoveredId(feature.feature_id)}
-                      onMouseLeave={() => setHoveredId(null)}>
+                      onMouseLeave={() => setHoveredId(null)}
+                    >
                       <div className="flex flex-row items-center justify-between">
                         <div>
                           <div className="flex flex-row items-center space-x-2 mb-3">
@@ -476,7 +485,7 @@ function ImagePlayground() {
                             <input
                               type="range"
                               min="0"
-                              max="40"
+                              max="100"
                               step="1"
                               value={displayActivation * 10}
                               onChange={(e) =>
@@ -492,7 +501,8 @@ function ImagePlayground() {
                         {hoveredId === feature.feature_id && (
                           <button
                             onClick={() => handleMoreInfo(feature.feature_id)}
-                            className="transition-opacity duration-200 ml-4 underline text-[#3B81F6]">
+                            className="transition-opacity duration-200 ml-4 underline text-[#3B81F6]"
+                          >
                             More Info
                           </button>
                         )}
@@ -510,7 +520,8 @@ function ImagePlayground() {
               {modifiedFeatures.map((feature) => (
                 <div
                   key={feature.id}
-                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between">
+                  className="flex flex-row mb-4 bg-gray-100 px-3 py-3 rounded-lg items-center justify-between"
+                >
                   <div className="flex flex-row items-center">
                     <img
                       src={newUrl}

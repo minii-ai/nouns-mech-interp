@@ -6,6 +6,7 @@ import io
 
 router = APIRouter()
 
+
 def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
     img_byte_arr = io.BytesIO()
     image.save(img_byte_arr, format=format)
@@ -15,12 +16,12 @@ def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
 
 @router.get("/{image_id}")
 def get_image(image_id: int):
-    ''' Gets a Nouns Dataset Image via ID '''
+    """Gets a Nouns Dataset Image via ID"""
     if not features_service.is_valid_image(image_id):
         raise HTTPException(status_code=404, detail=f"image_id {image_id} not found")
     url = features_service.get_image(image_id)
     features = features_service.get_image_features(image_id)
-    image_data = { "url": url , "features": features}
+    image_data = {"url": url, "features": features}
     return {"image": image_data}
 
 
@@ -35,16 +36,16 @@ async def modify_image(image_id: int, request: Request):
     """
     if not features_service.is_valid_image(image_id):
         raise HTTPException(status_code=400, detail=f"image_id {image_id} not found")
-    
+
     body = await request.json()
     features = body["features"]
-    features_dict = {feature["feature_id"]: feature["activation"] for feature in features }
+    features_dict = {
+        int(feature["feature_id"]): feature["activation"] for feature in features
+    }
     modified_image = features_service.modify_image(image_id, features_dict)
     modified_image_bytes = pil_image_to_bytes(modified_image)
     return Response(
-        content=modified_image_bytes, 
-        media_type="image/png", 
-        status_code=200
+        content=modified_image_bytes, media_type="image/png", status_code=200
     )
 
 
@@ -53,12 +54,12 @@ async def modify_image(image_id: int, request: Request):
     responses={200: {"content": {"image/png": {}}}},
     response_class=Response,
 )
-async def get_image(image_id: int, request:Request):
+async def get_image(image_id: int, request: Request):
     """
     Modifies Image based on Natural Language Text
     """
     # body = await request.json()
-    text = "Modify to Shark"# body["text"]
+    text = "Modify to Shark"  # body["text"]
     feature_ids = features_service.get_top_k_similar_features(text)
 
     features_dict = {}
@@ -71,4 +72,3 @@ async def get_image(image_id: int, request:Request):
     return Response(
         content=modified_image_bytes, media_type="image/png", status_code=200
     )
-    

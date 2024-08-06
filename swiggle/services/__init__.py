@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from swiggle.dataset import load_nouns_dataset
 from swiggle.models import SAE, VAE, FeaturesControl
 
+# from swiggle.models import SAE, VAE, FeaturesControls
+
 from ..database import (
     create_supabase_client,
     ReconstructedImageFeatureBucket,
@@ -55,5 +57,5 @@ features_service = FeaturesService(
     feature_reconstructed_db=image_feature_bucket,
     features_control=features_control,
     nouns_dataset=nouns_dataset,
-    text_embedder=text_embedder
+    text_embedder=text_embedder,
 )
