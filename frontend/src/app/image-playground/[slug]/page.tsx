@@ -410,7 +410,11 @@ function ImagePlayground() {
                 className="h-[360px] w-[360px] rounded-lg border border-gray-200"
               /> */}
               <img
-                src={modifiedImageBase64 ? modifiedImageBase64 : imageData.url}
+                src={
+                  modifiedImageBase64
+                    ? modifiedImageBase64
+                    : "https://datasets-server.huggingface.co/assets/m1guelpf/nouns/--/default/train/1/image/image.jpg?Expires=1722879441&Signature=Osw~MxqolH-BhqSrjiJEonzrEK50jkBIWlmHkwkK9RNLMW5vCnJuSae6m3wEcesAZrm4gE19cgxf9mCiZG9-Y2ZrS82QF7tPyaTSr9pvIAvJ-8NpbnWoGQtdM81pArngJ8cpe2AMZupa7OTMhK6ElrCgpSUjLD0WE--Fi8pmocqXA0QXCy2LT8ytfIeaBF2cDloYETOeuoqcarr31bbxP8H5DLOwIE7OkyV6HuiSe56H0npYRqAOM2DcUtsFcX8ygpOo~lqaWQUiJ1kCCP19VwpEUafoDivgdBNFUhZM7utXGgK0kSQHS25~V5NeM~ZQHxSxPKUAkmAxjoldFYvyxg__&Key-Pair-Id=K3EI6M078Z3AC3"
+                }
                 className="h-[300px] w-[300px] rounded-lg border border-gray-200 object-cover"
                 // style={{ imageRendering: "crisp-edges" }}
               />
@@ -534,7 +538,7 @@ function ImagePlayground() {
       <input
         type="text"
         className="absolute px-4 py-3 bottom-4 left-1/2 transform -translate-x-1/2 w-1/3 border border-gray-300 rounded-md focus:ring-none focus:outline-none"
-        placeholder="Add a shark hat"
+        placeholder="Add a gold chain..."
         value={featureSearchQuery}
         onChange={(e) => setFeatureSearchQuery(e.target.value)}
         onKeyDown={handleKeyDown}
