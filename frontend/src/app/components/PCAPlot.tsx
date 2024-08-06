@@ -48,7 +48,9 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
         tooltip={({ node }) => {
           return (
             <div className="bg-white p-2 rounded drop-shadow-lg flex flex-col">
-              <span className="text-black text-sm">{node?.data?.data?.id}</span>
+              <span className="text-black text-sm">
+                #{node?.data?.data?.id}
+              </span>
               <span className="text-black text-sm">
                 {node?.data?.data?.description}
               </span>
