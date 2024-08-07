@@ -1,4 +1,3 @@
-import base64
 from supabase import Client
 
 class ReconstructedImageFeatureBucket():
@@ -36,7 +35,7 @@ if __name__ == '__main__':
 
         bucket = ReconstructedImageFeatureBucket(client)
 
-        for id in range(510, num_features):
+        for id in range(0, num_features):
             origin = f'{directory}/{id}.png'
             destination = f'./{id}.png'
             try: 

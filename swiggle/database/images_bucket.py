@@ -67,12 +67,17 @@ if __name__ == '__main__':
         with open(local_image_path, 'wb') as f:
             f.write(image_content)
         
-        # # Define the destination file path in the Supabase bucket
-        # destination_filepath = f'./{index}.png'
+        # Define the destination file path in the Supabase bucket
+        destination_filepath = f'./{index}.png'
         
-        # # Upload the image to Supabase
-        # image_bucket.upload(local_image_path, destination_filepath)
-        print(f"Image {index} has been uploaded")
+        # Upload the image to Supabase
+        try:
+            image_bucket.upload(local_image_path, destination_filepath)
+            print(f"Image {index} has been uploaded")
+        except:
+            print(f"Image {index} already exists!")
+
+        
 
     print("All images have been resized, downloaded, and uploaded to Supabase.")
 
