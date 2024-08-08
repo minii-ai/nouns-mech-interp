@@ -167,3 +167,6 @@ data/
 *.out
 interp_dataset/
 temp/
+features.json
+sae_decoded_features
+DS

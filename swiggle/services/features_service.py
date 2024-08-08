@@ -58,7 +58,7 @@ class FeaturesService:
                 similarity = cosine_similarity([text_embedding], [feature_embedding])[0][0]
                 similarities.append((feature, similarity))
         similarities.sort(key=lambda x: x[1], reverse=True)
-        top_k_features = [feature["id"] for feature, _ in similarities[:k]]
+        top_k_features = [feature for feature, _ in similarities[:k]]
         return top_k_features
 
     def get_feature(self, feature_id: int):
