@@ -48,6 +48,47 @@ const featuresMock: Feature[] = [
 //   return `${prefix}${base64String}`;
 // }
 
+async function fetchMissingFeatureImages(missingFeatures) {
+  const updatedFeatures = await Promise.all(
+    missingFeatures.map(async (feature) => {
+      if (!feature.imageUrl) {
+        const id = feature.id.toString();
+        try {
+          const res = await fetch(
+            `http://localhost:8000/api/features/${id}/image`
+          );
+
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+
+          const contentType = res.headers.get("Content-Type");
+          if (contentType && contentType.includes("image/png")) {
+            const blob = await res.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            return {
+              ...feature,
+              imageUrl, // Add the image URL to the feature
+            };
+          } else {
+            throw new Error("Expected image/png response");
+          }
+        } catch (error) {
+          console.error(
+            `Error fetching image for feature_id ${feature.feature_id}:`,
+            error
+          );
+          return feature; // Return the original feature even if the image fetch fails
+        }
+      } else {
+        return feature; // If the feature already has an imageUrl, return it as is
+      }
+    })
+  );
+
+  return updatedFeatures;
+}
+
 function debounce(callback, delay) {
   let timeoutId;
 
@@ -106,20 +147,17 @@ const modifyImageWithText = async (imageId: number, text: string) => {
 
   const res = await fetch(api, {
     method: "POST",
-    mode: "no-cors",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
 
-  const blob = await res.blob();
-  const newImageUrl = URL.createObjectURL(blob);
-  console.log("Image URL:", newImageUrl); // Log the image URL
+  console.log(res);
+  const res_json = await res.json();
+  console.log(res_json);
 
-  // const json = await res.json();
-
-  return newImageUrl;
+  return { res_json };
 };
 
 function ImagePlayground() {
@@ -127,27 +165,20 @@ function ImagePlayground() {
   const id = params.slug as string;
 
   const [originalFeatures, setOriginalFeatures] = useState<Feature[]>([]);
-  // const [learnedFeatures, setLearnedFeatures] = useState<Feature[]>([]);
-  const [modifiedFeatures, setModifiedFeatures] = useState<Feature[]>([
-    { x: 70, y: 80, name: "Burger", id: 101, activation: 0.2 },
-    { x: 90, y: 100, name: "Pizza", id: 102, activation: 0.2 },
-  ]);
+  const [modifiedFeatures, setModifiedFeatures] = useState<any[]>([]);
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [modifiedImageUrl, setModifiedImageUrl] = useState<string>("");
   const [featureSearchQuery, setFeatureSearchQuery] = useState("");
-  const [modifiedImageBase64, setModifiedImageBase64] = useState<string | null>(
+  const [modifiedImageBase64, setModifiedImageBase64] = useState<any | null>(
     null
   );
   const [featuresWithImages, setFeaturesWithImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  // const [loadingOriginalImage, setLoadingOriginalImage] = useState(false);
-  // const [loadingOriginalFeatures, setLoadingOriginalFeatures] = useState(true);
-  // const [originalImage, setOriginalImage] = useState<any>(null);
-  // const [error, setError] = useState<any>(null);
   const router = useRouter();
   const [features, setFeatures] = useState<any>({});
 
   console.log(features);
+  console.log(featuresWithImages[0]);
 
   const featuresRef = useRef(features);
   featuresRef.current = features;
@@ -159,7 +190,7 @@ function ImagePlayground() {
     return debounce(async () => {
       console.log("[INFO] Modifying Features ....");
 
-      const modifiedFeatures = Object.entries(featuresRef.current).map(
+      const modifiedLearnedFeatures = Object.entries(featuresRef.current).map(
         ([featureId, activation]) => {
           return {
             feature_id: featureId,
@@ -168,8 +199,21 @@ function ImagePlayground() {
         }
       );
 
+      console.log(modifiedLearnedFeatures);
       console.log(modifiedFeatures);
-      const modifiedBase64 = await modifyFeatures(imageId, modifiedFeatures);
+      const combinedFeatures = [
+        ...modifiedLearnedFeatures.map(({ feature_id, activation }) => ({
+          feature_id,
+          activation,
+        })),
+        ...modifiedFeatures.map(({ id, activation }) => ({
+          feature_id: id,
+          activation,
+        })),
+      ];
+
+      console.log(combinedFeatures);
+      const modifiedBase64 = await modifyFeatures(imageId, combinedFeatures);
       console.log(modifiedBase64);
 
       setModifiedImageBase64(modifiedBase64);
@@ -203,7 +247,7 @@ function ImagePlayground() {
                 const res = await fetch(
                   `http://localhost:8000/api/features/${feature.feature_id}/image`
                 );
-                console.log("Response:", res); // Log the response object
+                // console.log("Response:", res);
 
                 if (!res.ok) {
                   throw new Error(`HTTP error! status: ${res.status}`);
@@ -242,7 +286,7 @@ function ImagePlayground() {
           setTimeout(() => {
             setLoading(false);
             console.log("Features with Images:", filteredFeatures);
-          }, 3000);
+          }, 2000);
           console.log("Features with Images:", filteredFeatures);
         } catch (error) {
           console.error("Error in fetching feature images:", error);
@@ -250,13 +294,16 @@ function ImagePlayground() {
       };
 
       fetchFeatureImages();
+      console.log(featuresWithImages);
     }
   }, [imageData]);
 
   useEffect(() => {
     console.log("Is Loading");
     console.log(loading);
-  }, [setLoading]);
+    console.log("featuresWithImages");
+    console.log(featuresWithImages);
+  }, [setLoading, setFeaturesWithImages]);
 
   const handleSliderChange = (id: number, newValue: number) => {
     console.log(id, newValue);
@@ -281,6 +328,10 @@ function ImagePlayground() {
     setModifiedFeatures((prevFeatures) =>
       prevFeatures.filter((feature) => feature.id !== id)
     );
+
+    console.log(modifiedFeatures);
+
+    modifyFeaturesDebounced();
   };
 
   const formatActivation = (activation: number) => {
@@ -311,50 +362,77 @@ function ImagePlayground() {
     setFeatures(featuresData);
 
     // Remove modified features
-    // setModifiedFeatures([]);
-    // Reset learned features to original state
-    // setLearnedFeatures(originalFeatures);
+    setModifiedFeatures([]);
   };
 
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      // Add your logic here for what should happen when the "Enter" key is pressed
       console.log(featureSearchQuery);
       console.log("Enter key pressed");
 
       console.log("MODIFYING IMAGE");
       const res = await modifyImageWithText(imageId, featureSearchQuery);
       console.log(res);
+      console.log("MODIFIED IMAGE");
+      console.log(res.res_json.image_id);
+      console.log(res.res_json.modified_image);
 
-      setModifiedImageBase64(res);
+      const feature_adjustments = res.res_json.feature_adjustments;
+      console.log(feature_adjustments);
 
-      const features = [{ feature_id: 1, activation: 0.5, image: "htp://" }];
+      setModifiedImageBase64(res.res_json.modified_image);
 
-      const originalFeatures = { ...features };
-      // const modifiedFeatures = {};
+      console.log(features);
 
-      features.forEach((feature) => {
-        if (feature.feature_id in originalFeatures) {
-          originalFeatures[feature.feature_id] = feature.activation;
-        } else {
+      Object.entries(feature_adjustments).forEach(
+        ([feature_id, activation]) => {
+          if (feature_id in features) {
+            features[feature_id] = activation;
+          }
         }
+      );
+
+      console.log(features);
+
+      const updatedFeaturesWithImages = featuresWithImages.map((feature) => {
+        if (feature.feature_id in feature_adjustments) {
+          return {
+            ...feature,
+            activation: feature_adjustments[feature.feature_id],
+          };
+        }
+        return feature;
       });
 
-      const modifiedFeatures = [];
+      // Assuming setFeaturesWithImages is the state setter function
+      setFeaturesWithImages(updatedFeaturesWithImages);
 
-      // Find Feature searching for
-      // If new image not in learned, set modified features to previous plus new feature
-      // let newFeature = {
-      //   x: 290,
-      //   y: 300,
-      //   name: featureSearchQuery,
-      //   id: 134,
-      //   activation: 0.2,
-      // };
-      // if (newFeature) {
-      //   // Set modified features to previous plus new image
-      //   setModifiedFeatures((prevFeatures) => [...prevFeatures, newFeature]);
-      // }
+      const newModifiedFeatures: any[] = [...modifiedFeatures];
+      console.log(newModifiedFeatures);
+
+      Object.entries(feature_adjustments).forEach(
+        ([feature_id, activation]) => {
+          if (feature_id in features) {
+            features[feature_id] = activation;
+          } else {
+            newModifiedFeatures.push({
+              id: feature_id,
+              activation: activation,
+            });
+          }
+        }
+      );
+
+      console.log(newModifiedFeatures);
+
+      const missingFeaturesWithImages = await fetchMissingFeatureImages(
+        newModifiedFeatures
+      );
+      console.log(missingFeaturesWithImages);
+      setModifiedFeatures((prevFeatures) => [
+        ...prevFeatures,
+        ...missingFeaturesWithImages,
+      ]);
       setFeatureSearchQuery("");
     }
   };
@@ -370,63 +448,7 @@ function ImagePlayground() {
     });
   };
 
-  // useEffect(() => {
-  //   const updateImageUrl = async () => {
-  //     console.log(learnedFeatures);
-  //     console.log(modifiedFeatures);
-
-  //     const combinedFeatures = learnedFeatures.concat(modifiedFeatures);
-  //     console.log(combinedFeatures);
-
-  //     // Generate new image URL with new learned and modified features
-  //     const newImageUrl = await generateNewImage(combinedFeatures);
-
-  //     // If combined features does not equal original features
-  //     if (
-  //       newImageUrl &&
-  //       JSON.stringify(combinedFeatures) !== JSON.stringify(originalFeatures)
-  //     ) {
-  //       console.log("setting new image url");
-  //       setModifiedImageUrl(newImageUrl);
-  //     }
-  //   };
-  //   if (learnedFeatures.length > 0) {
-  //     updateImageUrl();
-  //   }
-  // }, [learnedFeatures, modifiedFeatures]);
-
-  // useEffect(() => {
-  //   const fetchOriginalImage = async () => {
-  //     setLoadingOriginalImage(true);
-  //     try {
-  //       const response = await fetcher(`/api/images/?id=${id}`);
-  //       setOriginalImage(response.data);
-  //     } catch (error) {
-  //       setError(error);
-  //     } finally {
-  //       setLoadingOriginalImage(false);
-  //     }
-  //   };
-
-  //   const fetchFeaturesById = async () => {
-  //     setLoadingOriginalFeatures(true);
-  //     try {
-  //       const response = await fetcher(`/api/features/?id=${id}/image`);
-  //       console.log(response.data);
-  //       setOriginalFeatures(response.data);
-  //       setLearnedFeatures(response.data);
-  //     } catch (error) {
-  //       setError(error);
-  //     } finally {
-  //       setLoadingOriginalFeatures(false);
-  //     }
-  //   };
-
-  //   if (!originalImage) {
-  //     fetchOriginalImage();
-  //   }
-  //   fetchFeaturesById();
-  // }, []);
+  // console.log("modifiedImageBase64 ", modifiedImageBase64);
 
   return (
     <>
@@ -452,7 +474,11 @@ function ImagePlayground() {
                 <div className="relative flex items-center justify-center mb-6">
                   <img
                     src={
-                      modifiedImageBase64 ? modifiedImageBase64 : imageData.url
+                      modifiedImageBase64
+                        ? modifiedImageBase64.includes("blob:")
+                          ? modifiedImageBase64
+                          : `data:image/jpeg;base64,${modifiedImageBase64}`
+                        : imageData.url
                     }
                     className="h-[256px] w-[256px] rounded-lg border border-gray-200 object-cover"
                     style={{
@@ -487,17 +513,13 @@ function ImagePlayground() {
                           <span className="text-white text-xs">Added!</span>
                         </div>
                         <img
-                          src={
-                            modifiedImageBase64
-                              ? modifiedImageBase64
-                              : imageData.url
-                          }
+                          src={feature.imageUrl}
                           className="h-[36px] w-[36px] rounded-md mr-2"
                         />
-                        <p className="">{feature.name}</p>
+                        <p className="">{feature.id}</p>
                       </div>
                       <div className="flex flex-row items-center">
-                        <p>{feature.activation}</p>
+                        <p>{feature.activation.toFixed(1)}</p>
                         <XMarkIcon
                           className="h-4 w-4 cursor-pointer ml-3"
                           onClick={() => removeModifiedFeature(feature.id)}
