@@ -93,11 +93,13 @@ async def get_image(image_id: int, request: Request):
     try:
         body = await request.json()
         text = body['text']
+        adjustments = body['feature_adjustments'] or {}
     except:
         text = 'Bell Head'
+        adjustments = {}
 
 
-    feature_adjustments = {}
+    feature_adjustments = adjustments
     # Remove most active feature
     max_activated_feature = max(features_service.get_image_features(image_id), key=lambda feature: feature['activation'])
     feature_adjustments[max_activated_feature['feature_id']] = 0 
