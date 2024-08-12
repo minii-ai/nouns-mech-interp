@@ -183,6 +183,9 @@ function ImagePlayground() {
   const featuresRef = useRef(features);
   featuresRef.current = features;
 
+  const modifiedFeaturesRef = useRef(modifiedFeatures);
+  modifiedFeaturesRef.current = modifiedFeatures;
+
   const imageId = parseInt(id, 10);
   const { data: imageData, isLoading } = useGetImageDataById(imageId);
 
@@ -200,13 +203,25 @@ function ImagePlayground() {
       );
 
       console.log(modifiedLearnedFeatures);
-      console.log(modifiedFeatures);
+      // console.log(modifiedFeatures);
+      // const combinedFeatures = [
+      //   ...modifiedLearnedFeatures.map(({ feature_id, activation }) => ({
+      //     feature_id,
+      //     activation,
+      //   })),
+      //   ...modifiedFeatures.map(({ id, activation }) => ({
+      //     feature_id: id,
+      //     activation,
+      //   })),
+      // ];
+
+      console.log(modifiedFeaturesRef.current);
       const combinedFeatures = [
         ...modifiedLearnedFeatures.map(({ feature_id, activation }) => ({
           feature_id,
           activation,
         })),
-        ...modifiedFeatures.map(({ id, activation }) => ({
+        ...modifiedFeaturesRef.current.map(({ id, activation }) => ({
           feature_id: id,
           activation,
         })),
@@ -218,7 +233,7 @@ function ImagePlayground() {
 
       setModifiedImageBase64(modifiedBase64);
     }, 1000);
-  }, [imageId]);
+  }, [imageId, modifiedFeatures]);
 
   useEffect(() => {
     if (imageData) {
@@ -324,13 +339,28 @@ function ImagePlayground() {
     // );
   };
 
-  const removeModifiedFeature = (id: number) => {
-    setModifiedFeatures((prevFeatures) =>
-      prevFeatures.filter((feature) => feature.id !== id)
-    );
+  // const removeModifiedFeature = async (id: any) => {
+  //   console.log("removing feature");
+  //   console.log(id);
+  //   console.log(modifiedFeatures);
+  //   setModifiedFeatures((prevFeatures) =>
+  //     prevFeatures.filter((feature) => parseInt(feature.id, 10) !== id)
+  //   );
 
+  //   modifyFeaturesDebounced();
+  // };
+
+  const removeModifiedFeature = async (id: any) => {
+    console.log("removing feature");
+    console.log(id);
     console.log(modifiedFeatures);
-
+    setModifiedFeatures((prevFeatures) => {
+      const filteredFeatures = prevFeatures.filter(
+        (feature) => parseInt(feature.id, 10) !== id
+      );
+      modifiedFeaturesRef.current = filteredFeatures;
+      return filteredFeatures;
+    });
     modifyFeaturesDebounced();
   };
 
@@ -416,7 +446,7 @@ function ImagePlayground() {
             features[feature_id] = activation;
           } else {
             newModifiedFeatures.push({
-              id: feature_id,
+              id: parseInt(feature_id, 10),
               activation: activation,
             });
           }
@@ -429,26 +459,22 @@ function ImagePlayground() {
         newModifiedFeatures
       );
       console.log(missingFeaturesWithImages);
-      setModifiedFeatures((prevFeatures) => [
-        ...prevFeatures,
-        ...missingFeaturesWithImages,
-      ]);
+      setModifiedFeatures((prevFeatures) => {
+        const updatedFeatures = [...prevFeatures, ...missingFeaturesWithImages];
+
+        console.log("Updated Features:", updatedFeatures);
+
+        return updatedFeatures;
+      });
+
       setFeatureSearchQuery("");
     }
   };
 
-  // Placeholder async function to generate a new image URL based on features
-  const generateNewImage = async (features: any): Promise<string> => {
-    // Simulate an async operation (e.g., API call) with a timeout
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const newImageUrl = newUrl;
-        resolve(newImageUrl);
-      }, 1000);
-    });
-  };
-
-  // console.log("modifiedImageBase64 ", modifiedImageBase64);
+  // useEffect(() => {
+  //   console.log("Modifying features");
+  //   console.log(modifiedFeatures);
+  // }, [modifiedFeatures]);
 
   return (
     <>
