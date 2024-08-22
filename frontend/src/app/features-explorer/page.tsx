@@ -48,34 +48,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen h-screen bg-white w-full">
-      {/* <div className="w-full flex flex-col items-center justify-center">
-        <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
-          <p className="cursor-pointer" onClick={() => router.push("/")}>
-            Swiggle
-          </p>
-          <p className="text-gray-500">Feature Explorer.</p>
-        </div>
-        <div className="max-w-2xl mx-auto py-6 mt-[64px]">
-          <h1 className="text-2xl font-medium text-gray-900">
-            Explore Learned Features
-          </h1>
-          <p className="text-base mt-5">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-            aliquip ex ea commodo consequat. Duis aute irure dolor in
-            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-            culpa qui officia deserunt mollit anim id est laborum.
-          </p>
-          <button
-            className="mt-5 px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
-            onClick={() => handleGotoFeatures()}
-          >
-            Feature Details →
-          </button>
-        </div>
-      </div> */}
       <div className="flex w-full h-full">
         <PCAPlot
           onSelect={(featureId) => setSelectedFeatureId(featureId)}

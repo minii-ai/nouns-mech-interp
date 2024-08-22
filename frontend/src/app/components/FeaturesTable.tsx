@@ -37,7 +37,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   }, [selectedFeatureId]);
 
   return (
-    <div className="h-full w-1/2">
+    <div className="h-full w-1/2 pl-2">
       <div className="h-full w-full flex flex-col">
         <input
           type="text"
