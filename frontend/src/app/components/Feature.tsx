@@ -227,7 +227,7 @@ const FeatureCard: React.FC<FeatureProps> = ({ feature }) => {
             <p className="text-sm font-medium mb-4">
               Activation Density ({activationDensityPercent}%)
             </p>
-            {/* <DensityHistogram data={feature.activations.buckets} /> */}
+            <DensityHistogram data={feature.activations.buckets} />
           </div>
         </div>
       )}

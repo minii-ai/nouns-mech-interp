@@ -14,7 +14,8 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
   const [hoveredPoint, setHoveredPoint] = useState(null);
 
   return (
-    <div className="h-full w-1/2">
+    // <div className="h-full w-1/2">
+    <div className="h-full w-full">
       <Canvas camera={{ zoom: 1, position: [0, 0, 10] }}>
         <OrbitControls
           enableRotate={false}
@@ -35,74 +36,37 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
           {features.map((feature) => {
             const x = feature.pca[0];
             const y = feature.pca[1];
+            const isHovered = hoveredPoint?.id === feature.id;
 
             return (
-              <mesh
+              <group
                 key={feature.id}
                 position={[x, y, 0]}
-                onPointerOver={(e) => {
-                  console.log("over");
-                  setHoveredPoint(feature);
-                }}
+                onPointerOver={(e) => setHoveredPoint(feature)}
                 onPointerLeave={() => setHoveredPoint(null)}
               >
-                <sphereGeometry args={[0.05, 32, 32]} />
-                <meshBasicMaterial color="#3c82f6" opacity={0.9} transparent />
+                <mesh>
+                  <sphereGeometry args={[isHovered ? 0.075 : 0.05, 32, 32]} />
+                  <meshBasicMaterial
+                    color="#3c82f6"
+                    opacity={0.9}
+                    transparent
+                  />
 
-                {hoveredPoint?.id === feature.id && (
-                  <Html>
-                    <div
-                      className="w-24 h-12"
-                      style={{
-                        color: "white",
-                        background: "black",
-                        padding: "2px",
-
-                        transform: "translate(100%, 100%)",
-                      }}
-                    >
-                      {/* {hoveredPoint.description} */}
-                      yo
-                    </div>
-                  </Html>
-                )}
-              </mesh>
+                  {hoveredPoint?.id === feature.id && (
+                    <Html className="h-max w-max p-1 absolute top-4 left-4 bg-neutral-950 rounded text-white shadow-md">
+                      <p className="text-sm">{feature.id}</p>
+                      <p className="text-sm">
+                        {feature.description || "Description of Feature"}
+                      </p>
+                    </Html>
+                  )}
+                </mesh>
+              </group>
             );
           })}
         </group>
       </Canvas>
-
-      {/* <ResponsiveScatterPlot
-        data={featuresData}
-        margin={{ top: 48, right: 48, bottom: 48, left: 48 }}
-        xScale={{ type: "linear", min: "auto", max: "auto" }}
-        xFormat=">-.2f"
-        yScale={{ type: "linear", min: "auto", max: "auto" }}
-        yFormat=">-.2f"
-        colors={{ scheme: "category10" }}
-        blendMode="multiply"
-        enableGridX={false}
-        enableGridY={false}
-        gridXValues={[]}
-        gridYValues={[]}
-        axisTop={null}
-        axisRight={null}
-        axisBottom={null}
-        axisLeft={null}
-        onClick={(node) => onSelect(node.data.data.id)}
-        tooltip={({ node }) => {
-          return (
-            <div className="bg-white p-2 rounded drop-shadow-lg flex flex-col">
-              <span className="text-black text-sm">
-                #{node?.data?.data?.id}
-              </span>
-              <span className="text-black text-sm">
-                {node?.data?.data?.description}
-              </span>
-            </div>
-          );
-        }}
-      /> */}
     </div>
   );
 };

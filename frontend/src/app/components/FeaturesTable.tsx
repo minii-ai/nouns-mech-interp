@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FeatureRow } from "./FeatureRow";
 
 interface DataPoint {
   id: number;
@@ -10,13 +11,13 @@ interface DataPoint {
 interface FeaturesTableProps {
   features: any[];
   selectedFeatureId?: number | null;
-  onClick?: any;
+  onSelectFeature: (id: number) => any;
 }
 
 const FeaturesTable: React.FC<FeaturesTableProps> = ({
   features,
   selectedFeatureId,
-  onClick,
+  onSelectFeature,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [hoveredId, setHoveredId] = useState<number | null>(null);
@@ -37,7 +38,8 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   }, [selectedFeatureId]);
 
   return (
-    <div className="h-full w-1/2 pl-2">
+    // <div className="h-full w-1/2 pl-2 shadow-xl border-l border-l-gray-200">
+    <div className="h-full w-[600px] pl-2 shadow-xl border-l border-l-gray-200">
       <div className="h-full w-full flex flex-col">
         <input
           type="text"
@@ -49,42 +51,31 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
         <div className="overflow-y-scroll w-full overflow-x-hidden">
           <table className="inline-block w-full">
             <tbody className="bg-white divide-y border-none w-full inline-block">
-              {filteredFeatures.map((feature: DataPoint) => (
-                <tr
-                  key={feature.id}
-                  ref={(el) => {
-                    featureRefs.current[feature.id] = el;
-                  }}
-                  onClick={() => onClick(feature.id)}
-                  onMouseEnter={() => setHoveredId(feature.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  className={`hover:bg-[var(--accent-color)] transition-colors cursor-pointer duration-100 w-full flex ${
-                    hoveredId === feature.id || selectedFeatureId === feature.id
-                      ? "bg-[var(--accent-color)]"
-                      : "bg-white"
-                  }`}
-                >
-                  <td className="py-2 whitespace-nowrap text-sm text-gray-500 flex flex-row items-center w-[64px]">
-                    <div className="bg-[var(--primary-color)] px-1.5 rounded-lg">
-                      <span className="text-white text-xs"># {feature.id}</span>
-                    </div>
-                  </td>
-                  <td className="py-2 whitespace-nowrap text-sm w-full">
-                    <div className="flex flex-row items-center justify-between w-full">
-                      <div>{feature.description}</div>
-                      {(hoveredId === feature.id ||
-                        selectedFeatureId === feature.id) && (
-                        <button
-                          onClick={() => onClick(feature.id)}
-                          className="transition-opacity duration-200 ml-4 underline text-[var(--primary-color)] pr-2"
-                        >
-                          More Info
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {filteredFeatures.map((feature: DataPoint) => {
+                const isHovered = hoveredId === feature.id;
+                const isSelected = selectedFeatureId === feature.id;
+
+                return (
+                  <FeatureRow
+                    key={feature.id}
+                    feature={feature}
+                    isSelected={isSelected}
+                    isHovered={isHovered}
+                    onClick={() => {
+                      if (isSelected) {
+                        onSelectFeature(null);
+                      } else {
+                        onSelectFeature(feature.id);
+                      }
+                    }}
+                    onMouseEnter={() => setHoveredId(feature.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    rowRef={(el) => {
+                      featureRefs.current[feature.id] = el;
+                    }}
+                  />
+                );
+              })}
             </tbody>
           </table>
         </div>
