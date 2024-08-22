@@ -147,10 +147,10 @@ function ImagePlaygroundHome() {
     <div className="min-h-screen bg-white pb-4">
       <div className="w-full flex flex-col items-center justify-center">
         <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
-          <p className="cursor-pointer" onClick={() => router.push("/")}>
+          <p className="cursor-default" onClick={() => router.push("/")}>
             Swiggle
           </p>
-          <p className="text-gray-500">Image Playground.</p>
+          <p className="text-gray-500 cursor-default">Image Playground.</p>
         </div>
         <div className="max-w-2xl w-full mx-auto py-6 mt-[64px]">
           <h1 className="text-2xl font-medium text-gray-900">
@@ -182,8 +182,7 @@ function ImagePlaygroundHome() {
           </button> */}
           <button
             className="flex flex-row items-center mt-5 px-4 py-2 border rounded-lg hover:bg-gray-100 text-sm font-medium text-gray-600"
-            onClick={() => handleExploreFeatures()}
-          >
+            onClick={() => handleExploreFeatures()}>
             Explore Features
             <ArrowRightIcon
               height={14}
@@ -202,8 +201,7 @@ function ImagePlaygroundHome() {
               className="flex relative justify-center cursor-pointer"
               onClick={() => handleSelectImage(index)}
               onMouseEnter={() => setHoverId(index)}
-              onMouseLeave={() => setHoverId(null)}
-            >
+              onMouseLeave={() => setHoverId(null)}>
               <img
                 src={image.url}
                 alt={`Image ${index + 1}`}

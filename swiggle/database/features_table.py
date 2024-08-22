@@ -2,13 +2,7 @@ from supabase import Client
 from typing import List
 from .types import Feature, BaseFeature, SerializedFeature, SupabaseResponseFeature
 import json
-import ast
 import numpy as np
-
-from dataclasses import dataclass
-from typing import List, Union
-import json
-
 
 def deserializer(obj: SupabaseResponseFeature) -> Feature:
     vector_attrs = [
@@ -19,8 +13,8 @@ def deserializer(obj: SupabaseResponseFeature) -> Feature:
     result = {}
     for k, v in obj.items():
         if k in vector_attrs:
-            # result[k] = ast.literal_eval(v)
-            result[k] = json.loads(v)
+            if v: result[k] = json.loads(v)
+            else: result[k] = []
         else:
             result[k] = v
     return result
@@ -83,7 +77,7 @@ class FeatureTable:
         return deserializer(features[0])
 
     def get_all(self) -> List[BaseFeature]:
-        features = self.table.select("id", "description", "pca").execute().data
+        features = self.table.select("id", "description", "pca", "max_activation", "description_embedding").execute().data
         result = [(deserializer(feature)) for feature in features]
         return result
 
@@ -111,14 +105,9 @@ if __name__ == "__main__":
         for feature in features:
             description = feature["description"]
             if description:
-                feature["description_embedding"] = list(
-                    map(
-                        lambda x: float(x), text_embedder.encode(feature["description"])
-                    )
-                )
-                feature["activations"] = create_denisity_histogram(
-                    feature["activations"]
-                )
+                feature["description_embedding"] = list(map(lambda x: float(x), text_embedder.encode(feature["description"])))
+                feature['max_activation'] = max(feature['activations'].values())
+                feature["activations"] = create_denisity_histogram(feature["activations"])
             try:
                 table.add(feature)
             except Exception as e:

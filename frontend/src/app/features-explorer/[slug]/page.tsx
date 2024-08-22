@@ -82,7 +82,9 @@ function FeaturesExplorer() {
     <div className="min-h-screen bg-white py-4">
       <div className="w-full flex flex-col items-center justify-center mb-6">
         <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
-          <p className="cursor-pointer" onClick={() => router.push("/")}>
+          <p
+            className="cursor-pointer"
+            onClick={() => router.push("/image-playground")}>
             Swiggle
           </p>
           <p className="text-gray-500">Features Explorer.</p>
