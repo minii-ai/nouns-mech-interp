@@ -139,10 +139,15 @@ const modifyFeatures = async (imageId: number, features: object) => {
   return imageUrl;
 };
 
-const modifyImageWithText = async (imageId: number, text: string) => {
+const modifyImageWithText = async (
+  imageId: number,
+  text: string,
+  featureAdjustments: any
+) => {
   const api = `http://localhost:8000/api/images/${imageId}/text`;
   const body = {
     text,
+    feature_adjustments: featureAdjustments,
   };
 
   const res = await fetch(api, {
@@ -177,9 +182,6 @@ function ImagePlayground() {
   const router = useRouter();
   const [features, setFeatures] = useState<any>({});
 
-  console.log(features);
-  console.log(featuresWithImages[0]);
-
   const featuresRef = useRef(features);
   featuresRef.current = features;
 
@@ -202,20 +204,6 @@ function ImagePlayground() {
         }
       );
 
-      console.log(modifiedLearnedFeatures);
-      // console.log(modifiedFeatures);
-      // const combinedFeatures = [
-      //   ...modifiedLearnedFeatures.map(({ feature_id, activation }) => ({
-      //     feature_id,
-      //     activation,
-      //   })),
-      //   ...modifiedFeatures.map(({ id, activation }) => ({
-      //     feature_id: id,
-      //     activation,
-      //   })),
-      // ];
-
-      console.log(modifiedFeaturesRef.current);
       const combinedFeatures = [
         ...modifiedLearnedFeatures.map(({ feature_id, activation }) => ({
           feature_id,
@@ -313,13 +301,6 @@ function ImagePlayground() {
     }
   }, [imageData]);
 
-  useEffect(() => {
-    console.log("Is Loading");
-    console.log(loading);
-    console.log("featuresWithImages");
-    console.log(featuresWithImages);
-  }, [setLoading, setFeaturesWithImages]);
-
   const handleSliderChange = (id: number, newValue: number) => {
     console.log(id, newValue);
 
@@ -331,24 +312,7 @@ function ImagePlayground() {
     });
 
     modifyFeaturesDebounced();
-
-    // setLearnedFeatures((prevFeatures) =>
-    //   prevFeatures.map((feature) =>
-    //     feature.id === id ? { ...feature, activation: newValue / 10 } : feature
-    //   )
-    // );
   };
-
-  // const removeModifiedFeature = async (id: any) => {
-  //   console.log("removing feature");
-  //   console.log(id);
-  //   console.log(modifiedFeatures);
-  //   setModifiedFeatures((prevFeatures) =>
-  //     prevFeatures.filter((feature) => parseInt(feature.id, 10) !== id)
-  //   );
-
-  //   modifyFeaturesDebounced();
-  // };
 
   const removeModifiedFeature = async (id: any) => {
     console.log("removing feature");
@@ -395,13 +359,37 @@ function ImagePlayground() {
     setModifiedFeatures([]);
   };
 
+  const getFeatures = () => {
+    const features = {}; // map feature id to activation
+    // imageData.features.forEach((feature: any) => {
+    //   features[feature.feature_id] = feature.activation;
+    // });
+
+    // modifiedFeatures.forEach((feature: any) => {
+    //   features[feature.id] = feature.activation;
+    // });
+
+    return features;
+  };
+
   const handleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      console.log(featureSearchQuery);
-      console.log("Enter key pressed");
+      console.log("MODIFYING IMAGE: ", featureSearchQuery);
 
-      console.log("MODIFYING IMAGE");
-      const res = await modifyImageWithText(imageId, featureSearchQuery);
+      const featuresMook = getFeatures();
+      console.log(modifiedFeatures);
+
+      console.log(features);
+
+      const res = await modifyImageWithText(
+        imageId,
+        featureSearchQuery,
+        featuresMook
+      );
+
+      console.log(res);
+
+      // throw new Error("asdf");
       console.log(res);
       console.log("MODIFIED IMAGE");
       console.log(res.res_json.image_id);
@@ -471,105 +459,22 @@ function ImagePlayground() {
     }
   };
 
-  // useEffect(() => {
-  //   console.log("Modifying features");
-  //   console.log(modifiedFeatures);
-  // }, [modifiedFeatures]);
-
   return (
     <>
       {!loading && (
         <div className="h-screen bg-white">
-          <div className="w-full flex flex-col items-center justify-center mb-6">
-            <div className="max-w-2xl w-[672px] flex flex-row items-center justify-between font-medium text-sm pt-4">
-              <p
-                className="cursor-pointer"
-                onClick={() => router.push("/image-playground")}>
-                Swiggle
-              </p>
-              <p
-                className="text-gray-500 cursor-pointer"
-                onClick={() => handleImagePlayground()}>
-                Image Playground.
-              </p>
-            </div>
-          </div>
+          <div className="w-full flex flex-col items-center justify-center"></div>
           {imageData && featuresWithImages.length > 0 && (
-            <div className="flex justify-between mb-8 px-[100px] h-full">
-              <div className="w-1/2 pr-[50px] flex flex-col items-center justify-center h-full">
-                <div className="relative flex items-center justify-center mb-6">
-                  <img
-                    src={
-                      modifiedImageBase64
-                        ? modifiedImageBase64.includes("blob:")
-                          ? modifiedImageBase64
-                          : `data:image/jpeg;base64,${modifiedImageBase64}`
-                        : imageData.url
-                    }
-                    className="h-[256px] w-[256px] rounded-lg border border-gray-200 object-cover"
-                    style={{
-                      imageRendering: "pixelated",
-                    }}
-                  />
-                </div>
-                {/* Only show if not original image */}
-                <div
-                  className="cursor-pointer h-6 mb-4 text-gray-500 hover:bg-gray-100 rounded-full py-2.5 px-2.5 flex items-center"
-                  onClick={handleReset}>
-                  {modifiedImageBase64 && (
-                    <div className="flex flex-row items-center">
-                      <p>reset changes</p>
-                      <ArrowPathIcon
-                        className="h-4 w-4 cursor-pointer ml-1.5 stroke-2"
-                        strokeWidth={2}
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="w-[400px]  overflow-y-scroll">
-                  {/* <p className="mb-6 mt-6">
-                Added Features: {modifiedFeatures.length}
-              </p> */}
-                  {modifiedFeatures.map((feature) => (
-                    <div
-                      key={feature.id}
-                      className="w-full flex flex-row hover:bg-gray-100 px-3 py-3 rounded-lg items-center justify-between cursor-pointer">
-                      <div className="flex flex-row items-center">
-                        <div className="bg-[var(--primary-color)] px-2 py-1 rounded-full flex items-center mr-3">
-                          <span className="text-white text-xs">Added!</span>
-                        </div>
-                        <img
-                          src={feature.imageUrl}
-                          className="h-[36px] w-[36px] rounded-md mr-2"
-                        />
-                        <p className="">{feature.id}</p>
-                      </div>
-                      <div className="flex flex-row items-center">
-                        <p>{feature.activation.toFixed(1)}</p>
-                        <XMarkIcon
-                          className="h-4 w-4 cursor-pointer ml-3"
-                          onClick={() => removeModifiedFeature(feature.id)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="w-1/2 pl-[50px] flex flex-col h-full">
-                <div
-                  className="flex flex-col cursor-default px-2.5 py-2.5 bg-[#f9fafb] rounded-xl border-gray-100 border text-xs text-gray-500"
-                  onClick={() => console.log("adding feature")}>
-                  {/* <img
-                src={formatBase64Image(imageData.base64)}
-                className="h-[44px] w-[44px] rounded-md mr-2"
-              /> */}
+            <div className="flex justify-between h-full">
+              <div className="w-full flex flex-col items-center justify-between h-full">
+                <div className="flex flex-col w-full cursor-default px-2.5 py-2.5 bg-[#f9fafb] border-gray-100 border text-xs">
                   <p className="font-semibold mb-2">Original Image</p>
                   <div className="flex flex-row items-center">
                     <img
                       className="h-[44px] w-[44px] rounded-md mr-2"
                       src={imageData.url}
                     />
-                    <p>
+                    <p className="text-sm text-gray-500">
                       a pixel art character with a{" "}
                       <span>
                         crocodile-shaped head, light green glasses, and a green
@@ -578,11 +483,120 @@ function ImagePlayground() {
                     </p>
                   </div>
                 </div>
-                <p className="mb-6 mt-6">
-                  Learned Features: {imageData.features.length}
-                </p>
+
+                <div>
+                  <div className="relative flex flex-col items-center justify-center gap-2">
+                    <img
+                      src={
+                        modifiedImageBase64
+                          ? modifiedImageBase64.includes("blob:")
+                            ? modifiedImageBase64
+                            : `data:image/jpeg;base64,${modifiedImageBase64}`
+                          : imageData.url
+                      }
+                      className="h-[512px] w-[512px] rounded-lg border border-gray-200 object-cover"
+                      style={{
+                        imageRendering: "pixelated",
+                      }}
+                    />
+                    {modifiedImageBase64 && (
+                      <button
+                        className="cursor-pointer p-0.5 px-2 text-gray-500 hover:bg-gray-100 rounded-full flex items-center"
+                        onClick={handleReset}
+                      >
+                        <p>reset changes</p>
+                        <ArrowPathIcon
+                          className="h-4 w-4 cursor-pointer ml-1.5 stroke-2"
+                          strokeWidth={2}
+                        />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <input
+                  type="text"
+                  className="px-4 py-3 border border-gray-100 focus:ring-none focus:outline-none w-full"
+                  placeholder="Add a shark hat"
+                  value={featureSearchQuery}
+                  onChange={(e) => setFeatureSearchQuery(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+
+              <div className="w-[600px] flex flex-col h-full shadow-xl border-l border-l-gray-200">
+                {modifiedFeatures.length > 0 && (
+                  <div>
+                    <div className="my-4 px-2 flex items-center justify-between">
+                      <p className="font-medium text-sm">Added Features</p>
+                      <p className="text-sm text-gray-500">
+                        {modifiedFeatures.length}
+                      </p>
+                    </div>
+
+                    <div className="overflow-y-scroll h-full">
+                      {modifiedFeatures.map((feature) => (
+                        <div
+                          key={feature.id}
+                          className="px-2"
+                          onMouseEnter={() => setHoveredId(feature.id)}
+                          onMouseLeave={() => setHoveredId(null)}
+                        >
+                          <div className="flex flex-row items-center justify-between w-full">
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex flex-row items-center space-x-2">
+                                <img
+                                  src={feature.imageUrl}
+                                  className="h-[32px] w-[32px] rounded-md"
+                                />
+                                <div className="flex flex-col">
+                                  <p className="text-xs">#{feature.id}</p>
+                                  <p className="text-sm font-medium">
+                                    {feature.id}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex flex-row items-center">
+                                <p className="min-w-7 max-w-7 w-7 mr-2 text-sm text-gray-500">
+                                  {formatActivation(feature.activation)}
+                                </p>
+                                <input
+                                  disabled
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  step="1"
+                                  value={feature.activation * 10}
+                                  onChange={(e) =>
+                                    handleSliderChange(
+                                      feature.id,
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                />
+                              </div>
+                            </div>
+                            <XMarkIcon
+                              className="h-4 w-4 cursor-pointer ml-3"
+                              onClick={() => removeModifiedFeature(feature.id)}
+                            />
+                          </div>
+                          <div className="bg-gray-200 h-[1px] my-2" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="my-4 px-2 flex items-center justify-between">
+                  <p className="font-medium text-sm">Learned Features</p>
+                  <p className="text-sm text-gray-500">
+                    {imageData.features.length}
+                  </p>
+                </div>
+
                 {featuresWithImages.length > 0 && (
-                  <div className="overflow-y-scroll h-full pb-10">
+                  <div className="overflow-y-scroll h-full">
                     {featuresWithImages.map((feature) => {
                       const displayActivation =
                         features[feature.feature_id] || 0;
@@ -590,23 +604,30 @@ function ImagePlayground() {
                       return (
                         <div
                           key={feature.feature_id}
-                          className="mb-4"
+                          className="px-2"
                           onMouseEnter={() => setHoveredId(feature.feature_id)}
-                          onMouseLeave={() => setHoveredId(null)}>
-                          <div className="flex flex-row items-center justify-between">
-                            <div>
-                              <div className="flex flex-row items-center space-x-2 mb-3">
+                          onMouseLeave={() => setHoveredId(null)}
+                        >
+                          <div className="flex flex-row items-center justify-between w-full">
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex flex-row items-center space-x-2">
                                 <img
                                   src={feature.imageUrl}
-                                  className="h-[36px] w-[36px] rounded-md"
+                                  className="h-[32px] w-[32px] rounded-md"
                                 />
-                                <p className="text-lg">#{feature.feature_id}</p>
-                                <p className="text-lg font-medium">
-                                  {feature.feature_id}
-                                </p>
+
+                                <div className="flex flex-col">
+                                  <p className="text-xs">
+                                    #{feature.feature_id}
+                                  </p>
+                                  <p className="text-sm font-medium">
+                                    {feature.feature_id}
+                                  </p>
+                                </div>
                               </div>
+
                               <div className="flex flex-row items-center">
-                                <p className="min-w-7 max-w-7 w-7">
+                                <p className="min-w-7 max-w-7 w-7 mr-2 text-sm text-gray-500">
                                   {formatActivation(displayActivation)}
                                 </p>
                                 <input
@@ -621,21 +642,22 @@ function ImagePlayground() {
                                       Number(e.target.value)
                                     )
                                   }
-                                  // className="h-2 bg-gray-200 rounded-lg appearance-none accent-[#3B81F6] cursor-pointer ml-6 mr-3 w-[200px]"
                                 />
                               </div>
                             </div>
-                            {hoveredId === feature.feature_id && (
+
+                            {/* {hoveredId === feature.feature_id && (
                               <button
                                 onClick={() =>
                                   handleMoreInfo(feature.feature_id)
                                 }
-                                className="transition-opacity duration-200 ml-4 underline text-[#3B81F6]">
+                                className="transition-opacity duration-200 ml-4 underline text-[#3B81F6]"
+                              >
                                 More Info
                               </button>
-                            )}
+                            )} */}
                           </div>
-                          <div className="bg-gray-200 h-[1px] my-6" />
+                          <div className="bg-gray-200 h-[1px] my-2" />
                         </div>
                       );
                     })}
@@ -644,14 +666,6 @@ function ImagePlayground() {
               </div>
             </div>
           )}
-          <input
-            type="text"
-            className="absolute px-4 py-3 bottom-4 left-1/2 transform -translate-x-1/2 w-1/3 border border-gray-300 rounded-md focus:ring-none focus:outline-none"
-            placeholder="Add a shark hat"
-            value={featureSearchQuery}
-            onChange={(e) => setFeatureSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
         </div>
       )}
       {loading && imageData && imageData.url && (
@@ -670,6 +684,7 @@ function ImagePlayground() {
           <p className="mt-4 text-lg font-medium text-gray-500">
             Extracting Features...
           </p>
+
           <style jsx>{`
             @keyframes expand {
               0%,

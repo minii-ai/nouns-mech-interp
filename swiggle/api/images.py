@@ -6,7 +6,12 @@ import io
 from io import BytesIO
 import base64
 from fastapi.responses import JSONResponse
+
 router = APIRouter()
+
+
+def convert_keys_to_int(dictionary):
+    return {int(key): value for key, value in dictionary.items()}
 
 
 def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
@@ -15,10 +20,11 @@ def pil_image_to_bytes(image: Image, format: str = "PNG") -> bytes:
     img_byte_arr.seek(0)
     return img_byte_arr.getvalue()
 
+
 def pil_image_to_base64(image: Image) -> str:
     buffered = BytesIO()
     image.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
+    return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 
 @router.get("/{image_id}")
@@ -89,25 +95,39 @@ async def get_image(image_id: int, request: Request):
     """
     Modifies Image based on Natural Language Text
     """
-    text = 'Bell Head'
+    # text = 'Bell Head'
+    print("[IFNO] Request")
+
     try:
         body = await request.json()
-        text = body['text']
-        adjustments = body['feature_adjustments'] or {}
+        text = body["text"]
+        print("it worked")
+        adjustments = body["feature_adjustments"] or {}
     except:
-        text = 'Bell Head'
+        print("it failed")
+        text = "Bell Head"
         adjustments = {}
 
+    print("helloooooooo")
+    print("[INFO] Text: ", text)
 
     feature_adjustments = adjustments
     # Remove most active feature
-    max_activated_feature = max(features_service.get_image_features(image_id), key=lambda feature: feature['activation'])
-    feature_adjustments[max_activated_feature['feature_id']] = 0 
+    max_activated_feature = max(
+        features_service.get_image_features(image_id),
+        key=lambda feature: feature["activation"],
+    )
+    feature_adjustments[max_activated_feature["feature_id"]] = 0
 
+    print("got here")
     # Increase features similar to text
     features = features_service.get_top_k_similar_features(text, 1)
     for feature in features:
-        feature_adjustments[feature["id"]] = feature["max_activation"] 
+        feature_adjustments[feature["id"]] = feature["max_activation"]
+
+    feature_adjustments = convert_keys_to_int(feature_adjustments)
+
+    print(feature_adjustments)
 
     # Modify image
     modified_image = features_service.modify_image(image_id, feature_adjustments)

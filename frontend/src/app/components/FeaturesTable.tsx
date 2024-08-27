@@ -38,7 +38,6 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   }, [selectedFeatureId]);
 
   return (
-    // <div className="h-full w-1/2 pl-2 shadow-xl border-l border-l-gray-200">
     <div className="h-full w-[600px] pl-2 shadow-xl border-l border-l-gray-200">
       <div className="h-full w-full flex flex-col">
         <input

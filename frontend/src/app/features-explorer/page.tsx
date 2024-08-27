@@ -15,8 +15,6 @@ export default function Home() {
 
   const { data: features = [] } = useGetFeatures();
 
-  console.log({ features });
-
   const handleSelectFeature = (id: number) => {
     console.log("selecting feature: ", id);
     setSelectedFeatureId(id);
