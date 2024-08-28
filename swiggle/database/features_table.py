@@ -4,6 +4,7 @@ from .types import Feature, BaseFeature, SerializedFeature, SupabaseResponseFeat
 import json
 import numpy as np
 
+
 def deserializer(obj: SupabaseResponseFeature) -> Feature:
     vector_attrs = [
         "description_embedding",
@@ -13,8 +14,10 @@ def deserializer(obj: SupabaseResponseFeature) -> Feature:
     result = {}
     for k, v in obj.items():
         if k in vector_attrs:
-            if v: result[k] = json.loads(v)
-            else: result[k] = []
+            if v:
+                result[k] = json.loads(v)
+            else:
+                result[k] = []
         else:
             result[k] = v
     return result
@@ -62,6 +65,7 @@ class FeatureTable:
                 "id",
                 "description",
                 "pca",
+                "umap",
                 "top_k_images",
                 "activations",
                 "similar_features",
@@ -77,7 +81,18 @@ class FeatureTable:
         return deserializer(features[0])
 
     def get_all(self) -> List[BaseFeature]:
-        features = self.table.select("id", "description", "pca", "max_activation", "description_embedding").execute().data
+        features = (
+            self.table.select(
+                "id",
+                "description",
+                "pca",
+                "umap",
+                "max_activation",
+                "description_embedding",
+            )
+            .execute()
+            .data
+        )
         result = [(deserializer(feature)) for feature in features]
         return result
 
@@ -105,9 +120,15 @@ if __name__ == "__main__":
         for feature in features:
             description = feature["description"]
             if description:
-                feature["description_embedding"] = list(map(lambda x: float(x), text_embedder.encode(feature["description"])))
-                feature['max_activation'] = max(feature['activations'].values())
-                feature["activations"] = create_denisity_histogram(feature["activations"])
+                feature["description_embedding"] = list(
+                    map(
+                        lambda x: float(x), text_embedder.encode(feature["description"])
+                    )
+                )
+                feature["max_activation"] = max(feature["activations"].values())
+                feature["activations"] = create_denisity_histogram(
+                    feature["activations"]
+                )
             try:
                 table.add(feature)
             except Exception as e:

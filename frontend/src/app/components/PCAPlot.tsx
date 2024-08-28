@@ -16,7 +16,12 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
   return (
     // <div className="h-full w-1/2">
     <div className="h-full w-full">
-      <Canvas camera={{ zoom: 1, position: [0, 0, 10] }}>
+      <Canvas
+        camera={{
+          zoom: 1,
+          position: [5, 6, 10],
+        }}
+      >
         <OrbitControls
           enableRotate={false}
           enableZoom={true}
@@ -28,14 +33,16 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
           panSpeed={1.5}
           minZoom={1}
           maxZoom={1}
+          target={[5, 6, 0]}
         />
         <ambientLight intensity={0.1} />
         <directionalLight color="red" position={[0, 0, 5]} />
 
         <group>
           {features.map((feature) => {
-            const x = feature.pca[0];
-            const y = feature.pca[1];
+            console.log(feature);
+            const x = feature.umap[0];
+            const y = feature.umap[1];
             const isHovered = hoveredPoint?.id === feature.id;
 
             return (
