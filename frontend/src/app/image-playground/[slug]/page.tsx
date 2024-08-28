@@ -12,6 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { XMarkIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useGetImageDataById } from "@/hooks/images";
 import { useGetFeatureById } from "@/hooks/features";
+import NavigationSelect from "@/app/components/NavigationSelect";
 
 // import { Rotate } from "tabler-icons-react";
 
@@ -128,14 +129,10 @@ const modifyFeatures = async (imageId: number, features: object) => {
     body: JSON.stringify(body),
   });
 
-  // console.log(res);
-
   const blob = await res.blob();
   const imageUrl = URL.createObjectURL(blob);
   console.log("Image URL:", imageUrl); // Log the image URL
 
-  // const json = await res.json();
-  // return json.base64;
   return imageUrl;
 };
 
@@ -250,7 +247,6 @@ function ImagePlayground() {
                 const res = await fetch(
                   `http://localhost:8000/api/features/${feature.feature_id}/image`
                 );
-                // console.log("Response:", res);
 
                 if (!res.ok) {
                   throw new Error(`HTTP error! status: ${res.status}`);
@@ -334,14 +330,6 @@ function ImagePlayground() {
       : activation.toFixed(1);
   };
 
-  const handleMoreInfo = (id: number) => {
-    router.push(`/features-explorer/${id}`);
-  };
-
-  const handleImagePlayground = () => {
-    router.push(`/image-playground`);
-  };
-
   const handleReset = () => {
     // Set image url to empty
     setModifiedImageUrl("");
@@ -365,9 +353,9 @@ function ImagePlayground() {
     //   features[feature.feature_id] = feature.activation;
     // });
 
-    // modifiedFeatures.forEach((feature: any) => {
-    //   features[feature.id] = feature.activation;
-    // });
+    modifiedFeatures.forEach((feature: any) => {
+      features[feature.id] = feature.activation;
+    });
 
     return features;
   };
@@ -376,15 +364,15 @@ function ImagePlayground() {
     if (e.key === "Enter") {
       console.log("MODIFYING IMAGE: ", featureSearchQuery);
 
-      const featuresMook = getFeatures();
-      console.log(modifiedFeatures);
+      const featuresDict = getFeatures();
 
+      console.log(featuresDict);
       console.log(features);
 
       const res = await modifyImageWithText(
         imageId,
         featureSearchQuery,
-        featuresMook
+        featuresDict
       );
 
       console.log(res);
@@ -396,6 +384,7 @@ function ImagePlayground() {
       console.log(res.res_json.modified_image);
 
       const feature_adjustments = res.res_json.feature_adjustments;
+      console.log("feature adjustments:");
       console.log(feature_adjustments);
 
       setModifiedImageBase64(res.res_json.modified_image);
@@ -425,38 +414,50 @@ function ImagePlayground() {
       // Assuming setFeaturesWithImages is the state setter function
       setFeaturesWithImages(updatedFeaturesWithImages);
 
-      const newModifiedFeatures: any[] = [...modifiedFeatures];
-      console.log(newModifiedFeatures);
+      const newModifiedFeatures = [...modifiedFeatures];
 
       Object.entries(feature_adjustments).forEach(
         ([feature_id, activation]) => {
-          if (feature_id in features) {
-            features[feature_id] = activation;
-          } else {
-            newModifiedFeatures.push({
-              id: parseInt(feature_id, 10),
-              activation: activation,
-            });
+          const numericFeatureId = parseInt(feature_id, 10);
+
+          // Check if the feature_id is not in features
+          if (!(feature_id in features)) {
+            // Find the index of the feature in newModifiedFeatures
+            const existingIndex = newModifiedFeatures.findIndex(
+              (feature) => feature.id === numericFeatureId
+            );
+
+            if (existingIndex !== -1) {
+              // Update existing feature
+              newModifiedFeatures[existingIndex].activation = activation;
+            } else {
+              // Add new feature
+              newModifiedFeatures.push({
+                id: numericFeatureId,
+                activation: activation,
+              });
+            }
           }
         }
       );
 
-      console.log(newModifiedFeatures);
+      console.log({ newModifiedFeatures });
 
       const missingFeaturesWithImages = await fetchMissingFeatureImages(
         newModifiedFeatures
       );
-      console.log(missingFeaturesWithImages);
       setModifiedFeatures((prevFeatures) => {
-        const updatedFeatures = [...prevFeatures, ...missingFeaturesWithImages];
-
-        console.log("Updated Features:", updatedFeatures);
-
-        return updatedFeatures;
+        return missingFeaturesWithImages;
       });
 
       setFeatureSearchQuery("");
     }
+  };
+
+  const handleRandomizeImage = () => {
+    // select a random number between 0 and 49900
+    const randomId = Math.floor(Math.random() * 49900);
+    router.push(`/image-playground/${randomId}`);
   };
 
   return (
@@ -467,21 +468,16 @@ function ImagePlayground() {
           {imageData && featuresWithImages.length > 0 && (
             <div className="flex justify-between h-full">
               <div className="w-full flex flex-col items-center justify-between h-full">
-                <div className="flex flex-col w-full cursor-default px-2.5 py-2.5 bg-[#f9fafb] border-gray-100 border text-xs">
-                  <p className="font-semibold mb-2">Original Image</p>
-                  <div className="flex flex-row items-center">
-                    <img
-                      className="h-[44px] w-[44px] rounded-md mr-2"
-                      src={imageData.url}
-                    />
-                    <p className="text-sm text-gray-500">
-                      a pixel art character with a{" "}
-                      <span>
-                        crocodile-shaped head, light green glasses, and a green
-                        and blacked checkered shirt
-                      </span>
-                    </p>
-                  </div>
+                <div className="p-2 w-full flex items-center gap-1">
+                  <h1 className="text-sm font-semibold text-left">Swiggle</h1>
+                  <NavigationSelect />
+
+                  <button
+                    className="text-sm px-1 py-1 text-[var(--primary-color)] hover:font-medium"
+                    onClick={handleRandomizeImage}
+                  >
+                    Randomize Image
+                  </button>
                 </div>
 
                 <div>
@@ -525,6 +521,23 @@ function ImagePlayground() {
               </div>
 
               <div className="w-[600px] flex flex-col h-full shadow-xl border-l border-l-gray-200">
+                <div className="flex flex-col w-full cursor-default px-2 py-2 bg-[#f9fafb] border-gray-100 border text-xs">
+                  <p className="font-semibold mb-2">Original Image</p>
+                  <div className="flex flex-row items-center">
+                    <img
+                      className="h-[44px] w-[44px] rounded-md mr-2"
+                      src={imageData.url}
+                    />
+                    <p className="text-sm text-gray-500">
+                      a pixel art character with a{" "}
+                      <span>
+                        crocodile-shaped head, light green glasses, and a green
+                        and blacked checkered shirt
+                      </span>
+                    </p>
+                  </div>
+                </div>
+
                 {modifiedFeatures.length > 0 && (
                   <div>
                     <div className="my-4 px-2 flex items-center justify-between">
