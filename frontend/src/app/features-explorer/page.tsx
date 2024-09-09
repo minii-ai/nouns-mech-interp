@@ -17,7 +17,6 @@ export default function Home() {
   const { data: features = [] } = useGetFeatures();
 
   const handleSelectFeature = (id: number) => {
-    console.log("selecting feature: ", id);
     setSelectedFeatureId(id);
   };
 
@@ -30,13 +29,16 @@ export default function Home() {
         </div>
 
         <PCAPlot
-          onSelect={(featureId) => setSelectedFeatureId(featureId)}
+          hoveredFeatureId={hoveredFeaturedId}
           features={features}
+          onHoverFeature={setHoveredFeaturedId}
         />
         <FeaturesTable
           features={features}
+          hoveredFeaturedId={hoveredFeaturedId}
           selectedFeatureId={selectedFeatureId}
           onSelectFeature={handleSelectFeature}
+          onHoverFeature={setHoveredFeaturedId}
         />
       </div>
     </div>

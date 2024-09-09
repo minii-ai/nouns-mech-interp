@@ -10,17 +10,20 @@ interface DataPoint {
 
 interface FeaturesTableProps {
   features: any[];
+  hoveredFeaturedId?: number | null;
   selectedFeatureId?: number | null;
   onSelectFeature: (id: number) => any;
+  onHoverFeature: (id: number) => any;
 }
 
 const FeaturesTable: React.FC<FeaturesTableProps> = ({
   features,
+  hoveredFeaturedId,
   selectedFeatureId,
   onSelectFeature,
+  onHoverFeature,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
   const featureRefs = useRef<{ [key: number]: HTMLTableRowElement | null }>({});
 
   const filteredFeatures = features.filter((feature: any) =>
@@ -38,7 +41,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
   }, [selectedFeatureId]);
 
   return (
-    <div className="h-full w-[600px] pl-2 shadow-xl border-l border-l-gray-200">
+    <div className="h-full w-[500px] pl-2 shadow-xl border-l border-l-gray-200">
       <div className="h-full w-full flex flex-col">
         <input
           type="text"
@@ -51,7 +54,7 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
           <table className="inline-block w-full">
             <tbody className="bg-white divide-y border-none w-full inline-block">
               {filteredFeatures.map((feature: DataPoint) => {
-                const isHovered = hoveredId === feature.id;
+                const isHovered = hoveredFeaturedId === feature.id;
                 const isSelected = selectedFeatureId === feature.id;
 
                 return (
@@ -67,8 +70,8 @@ const FeaturesTable: React.FC<FeaturesTableProps> = ({
                         onSelectFeature(feature.id);
                       }
                     }}
-                    onMouseEnter={() => setHoveredId(feature.id)}
-                    onMouseLeave={() => setHoveredId(null)}
+                    onMouseEnter={() => onHoverFeature(feature.id)}
+                    onMouseLeave={() => onHoverFeature(null)}
                     rowRef={(el) => {
                       featureRefs.current[feature.id] = el;
                     }}

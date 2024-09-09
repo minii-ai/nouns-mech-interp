@@ -1,21 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
-import * as d3 from "d3";
-import Tooltip from "./Tooltip";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 
 interface PCAPlotProps {
-  onSelect?: (id: number) => void;
   features: any[];
+  hoveredFeatureId: number | null;
+  onHoverFeature: (id: number | null) => void;
 }
 
-const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-
+const PCAPlot: React.FC<PCAPlotProps> = ({
+  features,
+  hoveredFeatureId,
+  onHoverFeature,
+}) => {
   return (
-    // <div className="h-full w-1/2">
-    <div className="h-full w-full">
+    <div
+      className="h-full w-[calc(100% - 600px)]"
+      style={{ width: "calc(100% - 500px)" }}
+    >
       <Canvas
         camera={{
           zoom: 1,
@@ -39,39 +41,40 @@ const PCAPlot: React.FC<PCAPlotProps> = ({ onSelect, features }) => {
         <directionalLight color="red" position={[0, 0, 5]} />
 
         <group>
-          {features.map((feature) => {
-            console.log(feature);
-            const x = feature.umap[0];
-            const y = feature.umap[1];
-            const isHovered = hoveredPoint?.id === feature.id;
+          {features
+            .sort((a, b) => a.id - b.id)
+            .map((feature) => {
+              const x = feature.umap[0];
+              const y = feature.umap[1];
+              const isHovered = hoveredFeatureId === feature.id;
 
-            return (
-              <group
-                key={feature.id}
-                position={[x, y, 0]}
-                onPointerOver={(e) => setHoveredPoint(feature)}
-                onPointerLeave={() => setHoveredPoint(null)}
-              >
-                <mesh>
-                  <sphereGeometry args={[isHovered ? 0.075 : 0.05, 32, 32]} />
-                  <meshBasicMaterial
-                    color="#3c82f6"
-                    opacity={0.9}
-                    transparent
-                  />
+              return (
+                <group
+                  key={feature.id}
+                  position={[x, y, 0]}
+                  onPointerOver={(e) => onHoverFeature(feature.id)}
+                  onPointerLeave={() => onHoverFeature(null)}
+                >
+                  <mesh>
+                    <sphereGeometry args={[isHovered ? 0.075 : 0.05, 32, 32]} />
+                    <meshBasicMaterial
+                      color="#3c82f6"
+                      opacity={0.9}
+                      transparent
+                    />
 
-                  {hoveredPoint?.id === feature.id && (
-                    <Html className="h-max w-max p-1 absolute top-4 left-4 bg-neutral-950 rounded text-white shadow-md">
-                      <p className="text-sm">{feature.id}</p>
-                      <p className="text-sm">
-                        {feature.description || "Description of Feature"}
-                      </p>
-                    </Html>
-                  )}
-                </mesh>
-              </group>
-            );
-          })}
+                    {hoveredFeatureId === feature.id && (
+                      <Html className="h-max w-max p-1 absolute top-4 left-4 bg-neutral-950 rounded text-white shadow-md">
+                        <p className="text-sm">{feature.id}</p>
+                        <p className="text-sm">
+                          {feature.description || "Description of Feature"}
+                        </p>
+                      </Html>
+                    )}
+                  </mesh>
+                </group>
+              );
+            })}
         </group>
       </Canvas>
     </div>
