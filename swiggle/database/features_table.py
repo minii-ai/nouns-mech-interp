@@ -4,6 +4,14 @@ from .types import Feature, BaseFeature, SerializedFeature, SupabaseResponseFeat
 import json
 import numpy as np
 
+DEFAULT_SELECTION = ["id",
+                "description",
+                "pca",
+                "umap",
+                "top_k_images",
+                "activations",
+                "similar_features",
+                "activation_density"]
 
 def deserializer(obj: SupabaseResponseFeature) -> Feature:
     vector_attrs = [
@@ -59,18 +67,9 @@ class FeatureTable:
         self.table.insert(feature).execute()
         print(f'Feature {feature["id"]} was successfully added')
 
-    def get(self, feature_id: int) -> Feature:
+    def get(self, feature_id: int, selection=[]) -> Feature:
         features = (
-            self.table.select(
-                "id",
-                "description",
-                "pca",
-                "umap",
-                "top_k_images",
-                "activations",
-                "similar_features",
-                "activation_density",
-            )
+            self.table.select(*selection if selection else DEFAULT_SELECTION)
             .eq("id", feature_id)
             .execute()
             .data
