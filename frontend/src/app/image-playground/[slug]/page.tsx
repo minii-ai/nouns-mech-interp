@@ -529,11 +529,7 @@ function ImagePlayground() {
                       src={imageData.url}
                     />
                     <p className="text-sm text-gray-500">
-                      a pixel art character with a{" "}
-                      <span>
-                        crocodile-shaped head, light green glasses, and a green
-                        and blacked checkered shirt
-                      </span>
+                      <span>{imageData.description}</span>
                     </p>
                   </div>
                 </div>
