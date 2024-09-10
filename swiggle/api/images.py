@@ -34,32 +34,9 @@ def get_image(image_id: int):
         raise HTTPException(status_code=404, detail=f"image_id {image_id} not found")
     url = features_service.get_image(image_id)
     features = features_service.get_image_features(image_id)
-    image_data = {"url": url, "features": features}
+    description = features_service.get_image_description(image_id)
+    image_data = {"url": url, "description": description, "features": features}
     return {"image": image_data}
-
-
-@router.post(
-    "/{image_id}/features",
-    responses={200: {"content": {"image/png": {}}}},
-    response_class=Response,
-)
-async def modify_image(image_id: int, request: Request):
-    """
-    Modifies activations of features of an image and returns modified image
-    """
-    if not features_service.is_valid_image(image_id):
-        raise HTTPException(status_code=400, detail=f"image_id {image_id} not found")
-
-    body = await request.json()
-    features = body["features"]
-    features_dict = {
-        int(feature["feature_id"]): feature["activation"] for feature in features
-    }
-    modified_image = features_service.modify_image(image_id, features_dict)
-    modified_image_bytes = pil_image_to_bytes(modified_image)
-    return Response(
-        content=modified_image_bytes, media_type="image/png", status_code=200
-    )
 
 
 @router.post(
