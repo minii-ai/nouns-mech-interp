@@ -61,8 +61,8 @@ class FeaturesService:
         top_k_features = [feature for feature, _ in similarities[:k]]
         return top_k_features
 
-    def get_feature(self, feature_id: int):
-        feature = self.features_db.get(feature_id)
+    def get_feature(self, feature_id: int, selection = []):
+        feature = self.features_db.get(feature_id, selection)
         feature["image"] = self.feature_reconstructed_db.get(feature_id)
         return feature
 
@@ -75,7 +75,11 @@ class FeaturesService:
     @torch.inference_mode()
     def get_image_features(self, image_id: int) -> List[Feature]:
         image = self.nouns_dataset[image_id]
-        features = self.features_control.get_features(image)
+        control_features = self.features_control.get_features(image)
+        features = []
+        for feature in control_features:
+            features.append({**feature, **self.get_feature(feature["feature_id"], ["description"])})
+        print(features)
         return features
 
     @torch.inference_mode()

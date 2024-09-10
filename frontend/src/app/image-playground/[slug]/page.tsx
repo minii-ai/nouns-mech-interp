@@ -634,7 +634,7 @@ function ImagePlayground() {
                                     #{feature.feature_id}
                                   </p>
                                   <p className="text-sm font-medium">
-                                    {feature.feature_id}
+                                    {feature.description}
                                   </p>
                                 </div>
                               </div>
