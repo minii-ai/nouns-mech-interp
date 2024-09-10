@@ -21,7 +21,6 @@ def get_feature(feature_id: int, request: Request):
     for a feature with id `feature_id`
     """
     feature = features_service.get_feature(feature_id)
-    print("feature", feature)
     return {"feature": feature}
 
 

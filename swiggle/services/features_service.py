@@ -45,6 +45,9 @@ class FeaturesService:
 
     def get_image(self, image_id: int):
         return self.image_db.get(image_id)
+    
+    def get_image_description(self, image_id):
+        return self.nouns_dataset.get_text(image_id)
 
     def is_valid_image(self, image_id: int):
         return 0 <= image_id < self.num_images
